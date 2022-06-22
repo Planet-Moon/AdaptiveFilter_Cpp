@@ -14,7 +14,8 @@ int main(int argc, char **argv){
     Fir fir({1,1,1,1,1});
     WhiteNoise noise(0, 0.3);
 
-    Vec signal(2e4);
+    long long samples = 3e4;
+    Vec signal(samples);
     const double sampels_per_second = 1e4;
     const double frequency = 1; // Hz
     const double amplitude = 1;
@@ -24,11 +25,22 @@ int main(int argc, char **argv){
         signal[i] = amplitude * std::sin(2*pi*frequency*t+phi);
     }
 
-    Json::Value jsonSignal;
-    for(int i=0; i < signal.size(); ++i){
-        jsonSignal[i] = signal[i];
+    Vec signal_noise = signal;
+    for(int i=0; i<signal_noise.size(); ++i){
+        signal_noise[i] = noise.generate();
     }
-    JsonServer jServer(80,jsonSignal);
+
+    Vec output(signal.size());
+    std::vector<AdaptiveFIR::UpdateStats> adaptiveStats(signal.size());
+    for(int i=0; i<output.size(); ++i){
+        output[i] = fir.filter(signal[i]);
+        adaptiveStats[i] = AFir.update(output[i], signal_noise[i]);
+    }
+
+    Json::Value json;
+    json["input"] = JsonServer::fromVector(signal_noise);
+    json["output"] = JsonServer::fromVector(output);
+    JsonServer jServer(80,json);
     jServer.host_blocking();
 
     return 0;

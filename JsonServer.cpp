@@ -13,21 +13,34 @@ JsonServer::JsonServer(int port, const Json::Value& json):
     {
         std::string content = convert_to_string(json);
         res.set_content(content, "application/json");
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
-        svr.stop();
+        ++requests_gotten;
     });
 }
 
-void JsonServer::host()
+JsonServer::~JsonServer()
 {
-    svr.listen("0.0.0.0", port);
+    server_thread.join();
+}
+
+void JsonServer::host(httplib::Server* svr, int port)
+{
+    svr->listen("0.0.0.0", port);
 }
 
 void JsonServer::host_blocking()
 {
-    host();
+    server_thread = std::thread(host, &svr, port);
+    while(!is_running()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_period));
+    }
     while(is_running())
     {
+        if(requests_gotten){
+            svr.stop();
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_period));
+            server_thread.join();
+            requests_gotten = 0;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_period));
     }
 }

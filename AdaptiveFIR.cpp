@@ -34,7 +34,7 @@ void AdaptiveFIR::update_x(double _x)
     x[0] = _x;
 }
 
-void AdaptiveFIR::update(double _x, double d)
+AdaptiveFIR::UpdateStats AdaptiveFIR::update(double _x, double d)
 {
     update_x(_x);
     Mat m_x = Matrix::fromVector(x);
@@ -57,6 +57,11 @@ void AdaptiveFIR::update(double _x, double d)
     auto z2 = z_m_t * z1;
     auto z3 = R_inv - z2;
     R_inv = 1/p * z3;
+    UpdateStats us{};
+    us.b = b;
+    us.error = e;
+    us.y = y;
+    return us;
 }
 
 Vec AdaptiveFIR::predict(int samples, int delay) const

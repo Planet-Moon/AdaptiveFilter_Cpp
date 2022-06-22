@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-from data import data
+from data import get_data
 
 def main():
-    plt.plot(data)
+    plt.plot(get_data())
     plt.show()
 
 
