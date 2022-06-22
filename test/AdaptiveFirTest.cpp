@@ -35,7 +35,7 @@ TEST(AdaptiveFir, Update){
         fir.update(0.3, 0.3);
         fir.update(0.2, 0.3);
         fir.update(0.1, 0.3);
-        std::cout << "fir.e: " << fir.error() << std::endl;
+        // std::cout << "fir.e: " << fir.error() << std::endl;
     }
     auto predict = fir.predict(2,0);
 }

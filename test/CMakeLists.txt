@@ -4,6 +4,7 @@ set(SRC
     main.cpp
     AdaptiveFirTest.cpp
     MatrixTest.cpp
+    WhiteNoiseTest.cpp
 )
 
 find_package(GTest CONFIG REQUIRED)
@@ -19,5 +20,8 @@ target_link_libraries(test
 target_link_libraries(test
     PRIVATE
         adaptiveFilterLib
+
 )
+target_link_libraries(test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 target_include_directories(test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(test PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
