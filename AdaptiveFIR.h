@@ -1,5 +1,6 @@
 #pragma once
 #include "Matrix.h"
+#include "json/json.h"
 
 class AdaptiveFIR{
 public:
@@ -10,6 +11,7 @@ public:
         double error;
         double y;
         Vec b;
+        Json::Value toJson() const;
     };
     UpdateStats update(double x, double d);
 
