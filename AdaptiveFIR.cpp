@@ -1,6 +1,30 @@
 #include "AdaptiveFIR.h"
 #include <Matrix.h>
 #include <cassert>
+#include <cmath>
+
+
+const double PI = std::acos(-1);
+using namespace std::complex_literals;
+
+std::vector<std::string> FreqzResult::h_toStringVec() const
+{
+    std::vector<std::string> result{};
+    for(const auto& h_e: h){
+        const double real = h_e.real();
+        const double imag = h_e.imag();
+        std::string s = std::to_string(real);
+        if(imag >= 0){
+            s += "+";
+        }
+        else{
+            s += "";
+        }
+        s += std::to_string(imag)+"i";
+        result.push_back(s);
+    }
+    return result;
+}
 
 AdaptiveFIR::AdaptiveFIR(unsigned int n, double p):
     n(n), p(p)
@@ -72,7 +96,7 @@ AdaptiveFIR::UpdateStats AdaptiveFIR::update(double _x, double d)
     R_inv = 1/p * z3;
     UpdateStats us{};
     us.b = b;
-    us.error = e;
+    us.error = abs(e);
     us.y = y;
     return us;
 }
@@ -94,4 +118,25 @@ Vec AdaptiveFIR::predict(int samples, int delay) const
 double AdaptiveFIR::error() const
 {
     return e;
+}
+
+Vec AdaptiveFIR::get_b() const
+{
+    return b;
+}
+
+
+FreqzResult AdaptiveFIR::freqz(int samples /* = 50 */) const
+{
+    FreqzResult result;
+    for(int n_i = 0; n_i < samples; ++n_i){
+        const double angle = 2 * PI * n_i/(samples-1);
+        std::complex<double> temp = (0, 0i);
+        for(int n_j = 0; n_j < n; ++n_j){
+            temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
+        }
+        result.w.push_back(angle);
+        result.h.push_back(temp);
+    }
+    return result;
 }

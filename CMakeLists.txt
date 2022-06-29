@@ -30,6 +30,7 @@ target_link_libraries(adaptiveFilterLib PUBLIC jsoncpp_lib jsoncpp_object JsonCp
 target_include_directories(adaptiveFilterLib PUBLIC ${CPP_HTTPLIB_INCLUDE_DIRS})
 
 add_executable(adaptiveFilter
+    ExampleFir.h
     main.cpp
 )
 target_link_libraries(adaptiveFilter PUBLIC adaptiveFilterLib)

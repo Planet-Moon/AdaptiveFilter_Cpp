@@ -1,6 +1,14 @@
 #pragma once
+#include <complex>
+#include <string>
 #include "Matrix.h"
 #include "json/json.h"
+
+struct FreqzResult{
+    std::vector<double> w;
+    std::vector<std::complex<double>> h;
+    std::vector<std::string> h_toStringVec() const;
+};
 
 class AdaptiveFIR{
 public:
@@ -17,6 +25,10 @@ public:
 
     Vec predict(int samples, int delay) const;
     double error() const;
+
+    Vec get_b() const;
+
+    FreqzResult freqz(int samples = 50) const;
 
 protected:
     const unsigned int n;

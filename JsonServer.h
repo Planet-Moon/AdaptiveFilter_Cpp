@@ -20,6 +20,9 @@ public:
         }
         return result;
     }
+
+    std::thread* thread();
+
 private:
     httplib::Server svr;
     int port = 80;

@@ -19,7 +19,7 @@ JsonServer::JsonServer(int port, const Json::Value& json):
 
 JsonServer::~JsonServer()
 {
-    server_thread.join();
+
 }
 
 void JsonServer::host(httplib::Server* svr, int port)
@@ -48,4 +48,9 @@ void JsonServer::host_blocking()
 bool JsonServer::is_running() const
 {
     return svr.is_running();
+}
+
+std::thread* JsonServer::thread()
+{
+    return &server_thread;
 }

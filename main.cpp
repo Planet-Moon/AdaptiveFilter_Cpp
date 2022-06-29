@@ -4,17 +4,19 @@
 #include "WhiteNoise.h"
 #include "JsonServer.h"
 #include <cmath>
+#include "ExampleFir.h"
 
 
 const double pi = std::acos(-1);
 
 int main(int argc, char **argv){
 
-    AdaptiveFIR AFir(6);
-    Fir fir({1,1,1,1,1});
-    WhiteNoise noise(0, 0.3);
+    Fir fir(filter_taps);
+    // Fir fir({1,2,1});
+    AdaptiveFIR AFir(fir.n()+1);
+    WhiteNoise noise(0, 0.5);
 
-    long long samples = 1e3;
+    long long samples = 1e2;
     Vec signal(samples);
     const double sampels_per_second = 1e4;
     const double frequency = 10; // Hz
@@ -34,17 +36,31 @@ int main(int argc, char **argv){
     std::vector<AdaptiveFIR::UpdateStats> adaptiveStats(signal.size());
     for(int i=0; i<output.size(); ++i){
         output[i] = fir.filter(signal_noise[i]);
-        adaptiveStats[i] = AFir.update(output[i], signal_noise[i]);
+        adaptiveStats[i] = AFir.update(signal_noise[i], output[i]);
     }
+
+    auto AFir_freqz = AFir.freqz(160);
 
     Json::Value json;
     json["input"] = JsonServer::fromVector(signal_noise);
     json["output"] = JsonServer::fromVector(output);
+
     Json::Value jsonUpdateStats{};
     for(int i=0; i<adaptiveStats.size(); ++i){
         jsonUpdateStats[i] = adaptiveStats[i].toJson();
     }
     json["update_stats"] = jsonUpdateStats;
+
+    Json::Value jsonFilterParams{};
+    jsonFilterParams["system"] = JsonServer::fromVector(fir.b());
+    jsonFilterParams["identification"] = JsonServer::fromVector(AFir.get_b());
+    json["filter_parameters"] = jsonFilterParams;
+
+    Json::Value jsonFreqz{};
+    jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
+    jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
+    json["freqz"] = jsonFreqz;
+
     JsonServer jServer(80,json);
     jServer.host_blocking();
 

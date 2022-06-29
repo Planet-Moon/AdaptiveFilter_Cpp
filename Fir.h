@@ -12,8 +12,11 @@ public:
 
     std::string impz() const;
 
+    std::vector<double> b() const;
+    Order n() const;
+
 private:
-    std::vector<double> b;
+    std::vector<double> _b;
     std::vector<double> x_memory;
-    Order n;
+    Order _n;
 };
