@@ -4,19 +4,28 @@
 #include "WhiteNoise.h"
 #include "JsonServer.h"
 #include <cmath>
+#include <chrono>
 #include "ExampleFir.h"
+#include "ExampleFir2.h"
 
+using steady_clock = std::chrono::steady_clock;
+
+std::string time_now(){
+    return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(steady_clock::now().time_since_epoch()).count());
+}
 
 const double pi = std::acos(-1);
 
 int main(int argc, char **argv){
 
-    Fir fir(filter_taps);
+    std::cout<< time_now() << " - Program start" << std::endl;
+
+    Fir fir(filter_taps7);
     // Fir fir({1,2,1});
     AdaptiveFIR AFir(fir.n()+1);
     WhiteNoise noise(0, 0.5);
 
-    long long samples = 1e2;
+    long long samples = 1e3;
     Vec signal(samples);
     const double sampels_per_second = 1e4;
     const double frequency = 10; // Hz
@@ -32,6 +41,7 @@ int main(int argc, char **argv){
         signal_noise[i] = noise.generate();
     }
 
+    std::cout << time_now() << " - Running filters" << std::endl;
     Vec output(signal.size());
     std::vector<AdaptiveFIR::UpdateStats> adaptiveStats(signal.size());
     for(int i=0; i<output.size(); ++i){
@@ -39,7 +49,10 @@ int main(int argc, char **argv){
         adaptiveStats[i] = AFir.update(signal_noise[i], output[i]);
     }
 
+    std::cout << time_now() << " - Calculating frequency response" << std::endl;
     auto AFir_freqz = AFir.freqz(160);
+
+    std::cout << time_now() << " - Creating Json response" << std::endl;
 
     Json::Value json;
     json["input"] = JsonServer::fromVector(signal_noise);
@@ -61,6 +74,9 @@ int main(int argc, char **argv){
     jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
     json["freqz"] = jsonFreqz;
 
+    std::cout << "Size of json: " << sizeof(json) << " bytes" << std::endl;
+
+    std::cout << time_now() << " - Running server" << std::endl;
     JsonServer jServer(80,json);
     jServer.host_blocking();
 
