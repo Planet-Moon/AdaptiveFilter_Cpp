@@ -43,13 +43,27 @@ def main():
     param_max, param_min = find_min_max(system_parameters, identified_parameters)
     ax[2].set_ylim(param_min+param_min*0.05, param_max+param_max*0.05)
 
+    def plot_filter_response(data):
+        h, w =  np.array([complex(s.replace('i','j')) for s in data['freqz']['h']]), np.array(data['freqz']['w'])
+        w = w/(2*math.pi)
+        w = w[:math.floor(w.size*0.5)]
+        h = h[:w.size]
 
-    h, w =  np.array([complex(s.replace('i','j')) for s in data['freqz']['h']]), np.array(data['freqz']['w'])
-    w = w/(2*math.pi)
-    w = w[:math.floor(w.size*0.5)]
-    h = h[:w.size]
-    plt.figure()
-    plt.plot(w, 20 * np.log10(abs(h)))
+        fig, ax = plt.subplots(3, 1, constrained_layout=True)
+        ax[0].plot(w, abs(h))
+        ax[0].set_title("Frequency response")
+        ax[0].set_xlabel("\u03C9")
+
+        ax[1].plot(w, 20 * np.log10(abs(h)))
+        ax[1].set_title("Logarithmic frequency response")
+        ax[1].set_xlabel("\u03C9")
+
+        ax[2].plot(w, np.unwrap(np.angle(h)))
+        ax[2].set_title("Phase response")
+        ax[2].set_xlabel("\u03C9")
+
+
+    plot_filter_response(data)
 
     plt.show()
     pass
