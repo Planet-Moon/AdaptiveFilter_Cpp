@@ -63,3 +63,17 @@ TEST(Matrix, Transpose2){
     Mat expected = {{1,2},{1,2},{1,2}};
     EXPECT_EQ(m2, expected);
 }
+
+TEST(Matrix, Mean1){
+    Mat m = {{0,1,1},{2,3,2},{1,3,2},{4,2,2}};
+    Mat mean = Matrix::mean(m,1);
+    Mat expected = {{1.75, 2.25, 1.75}};
+    EXPECT_EQ(mean, expected);
+}
+
+TEST(Matrix, Mean2){
+    Mat m = {{0,1,2},{1,4,4},{4,0,-1},{-2,2,3}};
+    Mat mean = Matrix::mean(m,2);
+    Mat expected = {{1}, {3}, {1}, {1}};
+    EXPECT_EQ(mean, expected);
+}

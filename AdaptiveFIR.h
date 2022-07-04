@@ -5,6 +5,7 @@
 #include "json/json.h"
 
 struct FreqzResult{
+    FreqzResult(int n): w(n), h(n){}
     std::vector<double> w;
     std::vector<std::complex<double>> h;
     std::vector<std::string> h_toStringVec() const;
@@ -29,6 +30,8 @@ public:
     Vec get_b() const;
 
     FreqzResult freqz(int samples = 50) const;
+    static FreqzResult freqz(const AdaptiveFIR& fir, int samples = 50);
+    static FreqzResult freqz(const Vec& b, int samples = 50);
 
 protected:
     const unsigned int n;

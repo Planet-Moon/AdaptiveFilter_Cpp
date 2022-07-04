@@ -41,8 +41,10 @@ Vec AdaptiveFIR::filter(Vec b, Vec signal)
 {
     const int signal_dim = signal.size();
     Vec result(signal_dim);
+    #pragma omp parallel for
     for(int i = n-1; i < signal_dim; ++i){
         double fir_sum = 0;
+        #pragma omp parallel for
         for(int n_i = 0; n_i < n; ++n_i){
             fir_sum += signal[i-n_i] * b[n_i];
         }
@@ -104,9 +106,11 @@ AdaptiveFIR::UpdateStats AdaptiveFIR::update(double _x, double d)
 Vec AdaptiveFIR::predict(int samples, int delay) const
 {
     Vec result(samples + n);
+    #pragma omp parallel for
     for(int i = 0; i < x.size(); i++){
         result[i] = x[i];
     }
+    #pragma omp parallel for
     for(int i = x.size(); i < result.size(); i++){
         const Vec local_x(i-(i-n));
         auto z = Matrix::fromVector(local_x) * b;
@@ -128,15 +132,54 @@ Vec AdaptiveFIR::get_b() const
 
 FreqzResult AdaptiveFIR::freqz(int samples /* = 50 */) const
 {
-    FreqzResult result;
+    FreqzResult result(samples);
+    #pragma omp parallel for
     for(int n_i = 0; n_i < samples; ++n_i){
         const double angle = 2 * PI * n_i/(samples-1);
         std::complex<double> temp = (0, 0i);
+        #pragma omp parallel for
         for(int n_j = 0; n_j < n; ++n_j){
             temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
         }
-        result.w.push_back(angle);
-        result.h.push_back(temp);
+        result.w[n_i] = angle;
+        result.h[n_i] = temp;
+    }
+    return result;
+}
+
+FreqzResult AdaptiveFIR::freqz(const AdaptiveFIR& fir, int samples)
+{
+    Vec b = fir.get_b();
+    int n = b.size();
+    FreqzResult result(samples);
+    #pragma omp parallel for
+    for(int n_i = 0; n_i < samples; ++n_i){
+        const double angle = 2 * PI * n_i/(samples-1);
+        std::complex<double> temp = (0, 0i);
+        #pragma omp parallel for
+        for(int n_j = 0; n_j < n; ++n_j){
+            temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
+        }
+        result.w[n_i] = angle;
+        result.h[n_i] = temp;
+    }
+    return result;
+}
+
+FreqzResult AdaptiveFIR::freqz(const Vec& b, int samples)
+{
+    int n = b.size();
+    FreqzResult result(samples);
+    #pragma omp parallel for
+    for(int n_i = 0; n_i < samples; ++n_i){
+        const double angle = 2 * PI * n_i/(samples-1);
+        std::complex<double> temp = (0, 0i);
+        #pragma omp parallel for
+        for(int n_j = 0; n_j < n; ++n_j){
+            temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
+        }
+        result.w[n_i] = angle;
+        result.h[n_i] = temp;
     }
     return result;
 }

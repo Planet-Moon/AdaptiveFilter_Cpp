@@ -48,8 +48,11 @@ Mat operator-(const Mat &m1, const Mat &m2);
 namespace Matrix{
     Mat identity(int dim);
     Mat zeros(int dim);
+    Mat zeros(int dim1, int dim2);
     Mat transpose(const Mat& m);
     Mat fromVector(const Vec& v);
+    Mat mean(const Mat& m, int dim);
+    int size(const Mat& m, int dim);
 };
 
 namespace Vector{
