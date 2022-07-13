@@ -62,8 +62,19 @@ def main():
         ax[2].set_title("Phase response")
         ax[2].set_xlabel("\u03C9")
 
+    def plot_filter_parameters(data):
+        param_data = data["filter_parameters_time"]
+
+        x = np.arange(0, len(param_data[0]))
+        fix, ax = plt.subplots(1, 1)
+        for i in param_data:
+            ax.plot(x, i)
+        ax.set_title("Param 0")
+
 
     plot_filter_response(data)
+
+    plot_filter_parameters(data)
 
     plt.show()
     pass

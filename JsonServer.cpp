@@ -27,7 +27,7 @@ void JsonServer::host(httplib::Server* svr, int port)
     svr->listen("0.0.0.0", port);
 }
 
-void JsonServer::host_blocking()
+void JsonServer::host_blocking(bool once)
 {
     server_thread = std::thread(host, &svr, port);
     while(!is_running()) {
@@ -35,7 +35,7 @@ void JsonServer::host_blocking()
     }
     while(is_running())
     {
-        if(requests_gotten){
+        if(requests_gotten && once){
             svr.stop();
             std::this_thread::sleep_for(std::chrono::milliseconds(sleep_period));
             server_thread.join();

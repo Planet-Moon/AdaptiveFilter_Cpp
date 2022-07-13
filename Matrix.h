@@ -5,6 +5,7 @@
 
 using Vec = std::vector<double>;
 using Mat = std::vector<Vec>;
+using Mat3 = std::vector<Mat>;
 
 Vec operator*(const Mat &a, const Vec &x);
 Mat operator*(const Mat &a, const Mat &b);
@@ -49,9 +50,11 @@ namespace Matrix{
     Mat identity(int dim);
     Mat zeros(int dim);
     Mat zeros(int dim1, int dim2);
+    Mat3 zeros(int dim1, int dim2, int dim3);
     Mat transpose(const Mat& m);
     Mat fromVector(const Vec& v);
     Mat mean(const Mat& m, int dim);
+    Mat mean(const Mat3& m, int dim);
     int size(const Mat& m, int dim);
 };
 

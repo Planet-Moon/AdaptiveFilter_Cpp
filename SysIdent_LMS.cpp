@@ -28,7 +28,7 @@ int main(int argc, char **argv){
     const int n_adaptive_filter = fir.get_n()+1;
 
     Mat error_mat = Matrix::zeros(N_RUNS, samples);
-    Mat b_mat = Matrix::zeros(N_RUNS, n_adaptive_filter);
+    Mat3 b_mat = Matrix::zeros(N_RUNS, samples, n_adaptive_filter);
     Mat input_mat = Matrix::zeros(N_RUNS, samples);
     Mat output_mat = Matrix::zeros(N_RUNS, samples);
 
@@ -65,7 +65,7 @@ int main(int argc, char **argv){
             output[i] = fir.filter(signal_noise[i]);
             const auto stats = AFir.update(signal_noise[i], output[i]);
             error_mat[n][i] = stats.error;
-            b_mat[n] = stats.b;
+            b_mat[n][i] = stats.b;
             input_mat[n][i] = signal_noise[i];
             output_mat[n][i] = stats.y;
             adaptiveStats[i] = stats;
@@ -77,12 +77,12 @@ int main(int argc, char **argv){
     }
 
     const auto error = Matrix::mean(error_mat, 1)[0];
-    const auto b = Matrix::mean(b_mat, 1)[0];
+    const auto b = Matrix::mean(b_mat, 3);
     const auto input = Matrix::mean(input_mat, 1)[0];
     const auto output = Matrix::mean(output_mat, 1)[0];
 
     std::cout << time_now() << " - Calculating frequency response" << std::endl;
-    auto AFir_freqz = AdaptiveFIR_LMS::freqz(b, 160);
+    auto AFir_freqz = AdaptiveFIR_LMS::freqz(b[b.size()-1], 160);
 
     std::cout << time_now() << " - Creating Json response" << std::endl;
 
@@ -99,8 +99,9 @@ int main(int argc, char **argv){
 
     Json::Value jsonFilterParams{};
     jsonFilterParams["system"] = JsonServer::fromVector(fir.get_b());
-    jsonFilterParams["identification"] = JsonServer::fromVector(b);
+    jsonFilterParams["identification"] = JsonServer::fromVector(b[b.size()-1]);
     json["filter_parameters"] = jsonFilterParams;
+    json["filter_parameters_time"] = JsonServer::fromMatrix(Matrix::transpose(b));
 
     Json::Value jsonFreqz{};
     jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
@@ -111,7 +112,7 @@ int main(int argc, char **argv){
 
     std::cout << time_now() << " - Running server" << std::endl;
     JsonServer jServer(80,json);
-    jServer.host_blocking();
+    jServer.host_blocking(true);
 
     return 0;
 }

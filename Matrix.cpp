@@ -127,6 +127,14 @@ namespace Matrix{
         return m;
     }
 
+    Mat3 zeros(int dim1, int dim2, int dim3)
+    {
+        Vec v(dim3);
+        Mat m(dim2, v);
+        Mat3 m3(dim1, m);
+        return m3;
+    }
+
     Mat transpose(const Mat& m){
         Vec v(m.size());
         Mat result(m[0].size(), v);
@@ -169,6 +177,47 @@ namespace Matrix{
                 #pragma omp parallel for
                 for(int j = 0; j < cols; ++j){
                     result[i][0] += m[i][j]/cols;
+                }
+            }
+            return result;
+        }
+        return{};
+    }
+
+    Mat mean(const Mat3& m, int dim){
+        const int pages = m.size();
+        const int rows = m[0].size();
+        const int cols = m[0][0].size();
+
+        if(dim == 1){
+            Mat result = Matrix::zeros(cols, pages);
+            for(int i = 0; i < cols; ++i){
+                for(int p = 0; p < pages; ++p){
+                    for(int j = 0; j < rows; ++j){
+                        result[i][p] += m[p][j][i]/rows;
+                    }
+                }
+            }
+            return result;
+        }
+        else if(dim == 2){
+            Mat result = Matrix::zeros(rows, pages);
+            for(int p = 0; p < pages; ++p){
+                for(int i = 0; i < rows; ++i){
+                    for(int j = 0; j < cols; ++j){
+                        result[i][p] += m[p][i][j]/cols;
+                    }
+                }
+            }
+            return result;
+        }
+        else if(dim == 3){
+            Mat result = Matrix::zeros(rows, cols);
+            for(int i = 0; i < rows; ++i){
+                for(int j = 0; j < cols; ++j){
+                    for(int p = 0; p < pages; ++p){
+                        result[i][j] += m[p][i][j]/pages;
+                    }
                 }
             }
             return result;
