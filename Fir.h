@@ -1,22 +1,27 @@
 #pragma once
-#include <vector>
 #include <string>
-
-using Order = unsigned int;
+#include "Matrix.h"
+#include "FilterReturnTypes.h"
 
 class Fir{
 public:
-    Fir(const std::vector<double>& b);
+    Fir(const Vec& b);
 
-    double filter(const double& input);
+    double filter(const double& x);
 
     std::string impz() const;
 
-    std::vector<double> b() const;
-    Order n() const;
+    Vec get_b() const;
+    unsigned int get_n() const;
 
-private:
-    std::vector<double> _b;
-    std::vector<double> x_memory;
-    Order _n;
+    FreqzResult freqz(int samples = 50) const;
+    static FreqzResult freqz(const Fir& fir, int samples = 50);
+    static FreqzResult freqz(const Vec& b, int samples = 50);
+
+protected:
+    Fir(unsigned int& n);
+    Vec b;
+    Vec x;
+    const unsigned int n;
+    virtual void update_x(const double& x) final;
 };

@@ -20,18 +20,19 @@ int main(int argc, char **argv){
 
     std::cout<< time_now() << " - Program start" << std::endl;
 
-    const int N_RUNS = 20;
+    const int N_RUNS = 1e2;
     const long long samples = 1e3;
 
-    Fir fir(filter_taps7);
-    const int n_adaptive_filter = fir.n()+1;
+    // Fir fir(filter_taps7);
+    Fir fir({1, 0.5, 0});
+    const int n_adaptive_filter = fir.get_n()+1;
 
     Mat error_mat = Matrix::zeros(N_RUNS, samples);
     Mat b_mat = Matrix::zeros(N_RUNS, n_adaptive_filter);
     Mat input_mat = Matrix::zeros(N_RUNS, samples);
     Mat output_mat = Matrix::zeros(N_RUNS, samples);
 
-    std::vector<AdaptiveFIR::UpdateStats> firstFilterStats;
+    std::vector<UpdateStats> firstFilterStats;
 
     // Fir fir({1,2,1});
 
@@ -55,11 +56,11 @@ int main(int argc, char **argv){
             signal_noise[i] = noise.generate();
         }
 
-        AdaptiveFIR AFir(n_adaptive_filter);
+        AdaptiveFIR_LMS AFir(n_adaptive_filter, 0.2);
 
-        std::cout << time_now() << " - Running filters" << std::endl;
+        std::cout << time_now() << " - Running filters " << n << std::endl;
         Vec output(samples);
-        std::vector<AdaptiveFIR::UpdateStats> adaptiveStats(samples);
+        std::vector<UpdateStats> adaptiveStats(samples);
         for(int i=0; i<samples; ++i){
             output[i] = fir.filter(signal_noise[i]);
             const auto stats = AFir.update(signal_noise[i], output[i]);
@@ -72,6 +73,7 @@ int main(int argc, char **argv){
         if(n==0){
             firstFilterStats = adaptiveStats;
         }
+        std::cout << time_now() << " - End filters " << n << std::endl;
     }
 
     const auto error = Matrix::mean(error_mat, 1)[0];
@@ -80,7 +82,7 @@ int main(int argc, char **argv){
     const auto output = Matrix::mean(output_mat, 1)[0];
 
     std::cout << time_now() << " - Calculating frequency response" << std::endl;
-    auto AFir_freqz = AdaptiveFIR::freqz(b, 160);
+    auto AFir_freqz = AdaptiveFIR_LMS::freqz(b, 160);
 
     std::cout << time_now() << " - Creating Json response" << std::endl;
 
@@ -96,7 +98,7 @@ int main(int argc, char **argv){
     json["update_stats"] = jsonUpdateStats;
 
     Json::Value jsonFilterParams{};
-    jsonFilterParams["system"] = JsonServer::fromVector(fir.b());
+    jsonFilterParams["system"] = JsonServer::fromVector(fir.get_b());
     jsonFilterParams["identification"] = JsonServer::fromVector(b);
     json["filter_parameters"] = jsonFilterParams;
 

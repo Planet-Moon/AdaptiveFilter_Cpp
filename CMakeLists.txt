@@ -13,8 +13,13 @@ find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
 find_package(jsoncpp CONFIG REQUIRED)
 
 add_library(adaptiveFilterLib STATIC
+    FilterReturnTypes.h
+    FilterReturnTypes.cpp
     AdaptiveFIR.h
-    AdaptiveFIR.cpp
+    AdaptiveFIR_RLS.h
+    AdaptiveFIR_RLS.cpp
+    AdaptiveFIR_LMS.h
+    AdaptiveFIR_LMS.cpp
     Matrix.h
     Matrix.cpp
     WhiteNoise.h
@@ -29,10 +34,16 @@ target_link_libraries(adaptiveFilterLib PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(adaptiveFilterLib PUBLIC jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 target_include_directories(adaptiveFilterLib PUBLIC ${CPP_HTTPLIB_INCLUDE_DIRS})
 
-add_executable(adaptiveFilter
+add_executable(SysIdentRLS
     ExampleFir.h
-    main.cpp
+    SysIdent_RLS.cpp
 )
-target_link_libraries(adaptiveFilter PUBLIC adaptiveFilterLib)
+target_link_libraries(SysIdentRLS PUBLIC adaptiveFilterLib)
+
+add_executable(SysIdentLMS
+    ExampleFir.h
+    SysIdent_LMS.cpp
+)
+target_link_libraries(SysIdentLMS PUBLIC adaptiveFilterLib)
 
 add_subdirectory(test)
