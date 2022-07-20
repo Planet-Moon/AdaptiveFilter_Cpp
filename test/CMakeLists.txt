@@ -5,6 +5,7 @@ set(SRC
     AdaptiveFirTest.cpp
     MatrixTest.cpp
     WhiteNoiseTest.cpp
+    IIRTest.cpp
 )
 
 find_package(GTest CONFIG REQUIRED)

@@ -31,3 +31,7 @@ std::vector<std::string> FreqzResult::h_toStringVec() const
     }
     return result;
 }
+
+int FreqzResult::size() const{
+    return w.size();
+}

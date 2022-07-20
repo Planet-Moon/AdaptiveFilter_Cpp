@@ -26,6 +26,10 @@ add_library(adaptiveFilterLib STATIC
     WhiteNoise.cpp
     Fir.h
     Fir.cpp
+    IIR.h
+    IIR.cpp
+    FFT.h
+    FFT.cpp
     JsonServer.h
     JsonServer.cpp
 )
@@ -47,3 +51,7 @@ add_executable(SysIdentLMS
 target_link_libraries(SysIdentLMS PUBLIC adaptiveFilterLib)
 
 add_subdirectory(test)
+
+add_executable(PlotTest PlotTest.cpp)
+find_package(sciplot CONFIG REQUIRED)
+target_link_libraries(PlotTest PRIVATE sciplot::sciplot)

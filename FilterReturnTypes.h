@@ -13,6 +13,7 @@ struct UpdateStats{
 
 struct FreqzResult{
     FreqzResult(int n): w(n), h(n){}
+    int size() const;
     std::vector<double> w;
     std::vector<std::complex<double>> h;
     std::vector<std::string> h_toStringVec() const;
