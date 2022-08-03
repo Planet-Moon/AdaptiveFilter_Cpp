@@ -1,6 +1,6 @@
 # AdaptiveFilter_Cpp
 
-Implementation of an RLS adaptive filter using C++.
+Implementation of an RLS and LMS adaptive filter using C++.
 
 The alorithm itself can be reduced to have no external dependencies.
 Dependencies are:
