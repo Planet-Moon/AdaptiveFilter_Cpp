@@ -37,7 +37,7 @@ int FreqzResult::size() const{
 }
 
 std::vector<double> FreqzResult::magnitude() const {
-    std::vector<double> result(0,h.size());
+    std::vector<double> result(h.size(),0);
     for(int i=0; i<h.size(); i++){
         result[i] = std::abs(h[i]);
     }
@@ -45,7 +45,7 @@ std::vector<double> FreqzResult::magnitude() const {
 }
 
 std::vector<double> FreqzResult::phase() const {
-    std::vector<double> result(0,h.size());
+    std::vector<double> result(h.size(),0);
     for(int i=0; i<h.size(); i++){
         result[i] = std::arg(h[i]);
     }
