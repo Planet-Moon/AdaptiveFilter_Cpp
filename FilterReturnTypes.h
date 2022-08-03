@@ -16,5 +16,7 @@ struct FreqzResult{
     int size() const;
     std::vector<double> w;
     std::vector<std::complex<double>> h;
+    std::vector<double> magnitude() const;
+    std::vector<double> phase() const;
     std::vector<std::string> h_toStringVec() const;
 };

@@ -72,6 +72,7 @@ TEST(IIR, freqz){
     std::vector<double> b(5, 0.2);
     IIR iir(a, b);
 
-    const auto freqz = iir.freqz(50);
-    for(int i = 0; i < freqz.size(); ++i){}
+    const FreqzResult freqz = iir.freqz(50);
+    const auto mag = freqz.magnitude();
+    const auto arg = freqz.phase();
 }

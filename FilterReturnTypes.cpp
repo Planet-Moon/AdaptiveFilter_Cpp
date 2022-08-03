@@ -35,3 +35,19 @@ std::vector<std::string> FreqzResult::h_toStringVec() const
 int FreqzResult::size() const{
     return w.size();
 }
+
+std::vector<double> FreqzResult::magnitude() const {
+    std::vector<double> result(0,h.size());
+    for(int i=0; i<h.size(); i++){
+        result[i] = std::abs(h[i]);
+    }
+    return result;
+}
+
+std::vector<double> FreqzResult::phase() const {
+    std::vector<double> result(0,h.size());
+    for(int i=0; i<h.size(); i++){
+        result[i] = std::arg(h[i]);
+    }
+    return result;
+}
