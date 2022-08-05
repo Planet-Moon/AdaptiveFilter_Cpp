@@ -20,3 +20,6 @@ struct FreqzResult{
     std::vector<double> phase() const;
     std::vector<std::string> h_toStringVec() const;
 };
+
+void write_freqz_to_csv(const std::string &filename, const FreqzResult& freqz);
+void write_freqz_to_json(const std::string &filename, const FreqzResult& freqz);
