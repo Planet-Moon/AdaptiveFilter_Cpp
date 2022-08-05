@@ -4,17 +4,20 @@
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
 
+#pragma omp declare reduction(+ : std::complex<double> : omp_out += omp_in)
+
 std::vector<std::complex<double>> FFT::dft(std::vector<double> const& input){
     const int n = input.size();
     std::vector<std::complex<double>> output(n, 0);
     #pragma omp parallel for
     for(int i = 0; i < n; ++i){
-        std::complex<double> s;
+        std::complex<double> sum;
+        #pragma omp parallel for reduction(+ : sum)
         for(int j = 0; j < n; ++j){
             std::complex<double> angle = 2i * static_cast<double>(PI * j * i / n);
-            s += input[j] * exp(-angle);
+            sum += input[j] * exp(-angle);
         }
-        output[i] = s;
+        output[i] = sum;
     }
     return output;
 }

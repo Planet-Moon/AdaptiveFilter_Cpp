@@ -7,6 +7,7 @@
 #include <chrono>
 #include "ExampleFir.h"
 #include "ExampleFir2.h"
+#include <omp.h>
 
 using steady_clock = std::chrono::steady_clock;
 
@@ -18,6 +19,7 @@ const double pi = std::acos(-1);
 
 int main(int argc, char **argv){
 
+    std::cout<< "Number of threads: " << omp_get_num_threads() << std::endl;
     std::cout<< time_now() << " - Program start" << std::endl;
 
     const int N_RUNS = 1e2;
@@ -42,12 +44,14 @@ int main(int argc, char **argv){
         const double frequency = 10; // Hz
         const double amplitude = 1;
         const double phi = 0*1e4; // phase shift in seconds
+        #pragma omp parallel for
         for(int i=0; i < signal.size(); ++i){
             const double t = i/sampels_per_second;
             signal[i] = amplitude * std::sin(2*pi*frequency*t+phi);
         }
     }
 
+    #pragma omp parallel for ordered schedule(static)
     for(int n=0; n < N_RUNS; ++n){
         WhiteNoise noise(0, 0.5);
 
@@ -58,7 +62,7 @@ int main(int argc, char **argv){
 
         AdaptiveRLS AFir(n_adaptive_filter);
 
-        std::cout << time_now() << " - Running filters " << n << std::endl;
+        std::cout << time_now() << " - Running filters " << n << " in thread " << omp_get_thread_num() << std::endl;
         Vec output(samples);
         std::vector<UpdateStats> adaptiveStats(samples);
         for(int i=0; i<samples; ++i){

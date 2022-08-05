@@ -13,10 +13,11 @@ Vec operator*(const Mat &a, const Vec &x)
 
     #pragma omp parallel for
     for(i = 0; i < m; i++){
-        prod[i] = 0.;
-        #pragma omp parallel for
+        double temp = 0.;
+        #pragma omp parallel for reduction(+ : temp)
         for(j = 0; j < n; j++)
-            prod[i] += a[i][j]*x[j];
+            temp += a[i][j]*x[j];
+        prod[i] = temp;
     }
     return prod;
 }
@@ -32,11 +33,9 @@ Mat operator*(const Mat &a, const Mat &b)
 
     Vec col(j);
     Mat prod(n, col);
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(3)
     for(int n_i = 0; n_i < n; ++n_i){ // Row
-        #pragma omp parallel for
         for(int j_i = 0; j_i < j; ++j_i){ // Column
-            #pragma omp parallel for
             for(int k = 0; k < m; ++k){
                 const double toAdd = a[n_i][k] * b[k][j_i];
                 prod[n_i][j_i] += toAdd;
@@ -51,9 +50,8 @@ Mat operator+(const Mat &m1, const Mat &m2)
     assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
     Vec v(m1[0].size());
     Mat result(m1.size(), v);
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for(int i = 0; i < m1.size(); ++i){
-        #pragma omp parallel for
         for(int j = 0; j < m1[i].size(); ++j){
             result[i][j] = m1[i][j] + m2[i][j];
         }
@@ -66,9 +64,8 @@ Mat operator-(const Mat &m1, const Mat &m2)
     assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
     Vec v(m1[0].size());
     Mat result(m1.size(), v);
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for(int i = 0; i < m1.size(); ++i){
-        #pragma omp parallel for
         for(int j = 0; j < m1[i].size(); ++j){
             result[i][j] = m1[i][j] - m2[i][j];
         }
@@ -102,9 +99,8 @@ namespace Matrix{
     Mat identity(int dim){
         Mat m = zeros(dim);
 
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(2)
         for(int i = 0; i < dim; i++){
-            #pragma omp parallel for
             for(int j = 0; j < dim; j++){
                 if(i==j){
                     m[i][j] = 1;
@@ -139,9 +135,8 @@ namespace Matrix{
         Vec v(m.size());
         Mat result(m[0].size(), v);
 
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(2)
         for(int i = 0; i < m.size(); i++){
-            #pragma omp parallel for
             for(int j = 0; j < m[0].size(); j++){
                 result[j][i] = m[i][j];
             }
@@ -160,9 +155,8 @@ namespace Matrix{
         if(dim == 1){
             Vec v(cols);
             Mat result(1,v);
-            #pragma omp parallel for
+            #pragma omp parallel for collapse(2)
             for(int i = 0; i < cols; ++i){
-                #pragma omp parallel for
                 for(int j = 0; j < rows; ++j){
                     result[0][i] += m[j][i]/rows;
                 }
@@ -172,9 +166,8 @@ namespace Matrix{
         else if(dim == 2){
             Vec v(1);
             Mat result(rows,v);
-            #pragma omp parallel for
+            #pragma omp parallel for collapse(2)
             for(int i = 0; i < rows; ++i){
-                #pragma omp parallel for
                 for(int j = 0; j < cols; ++j){
                     result[i][0] += m[i][j]/cols;
                 }

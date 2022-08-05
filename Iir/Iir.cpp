@@ -3,6 +3,8 @@
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
 
+#pragma omp declare reduction(+ : std::complex<double> : omp_out += omp_in)
+
 IIR::IIR(std::vector<double>& a, std::vector<double>& b): a(a), b(b)
 {
     x = std::vector<double>(b.size());
@@ -60,13 +62,13 @@ FreqzResult IIR::freqz(int samples /* = 50 */) const
     for(int n_i = 0; n_i < samples; ++n_i){
         const double angle = 2 * PI * n_i/(samples-1);
         std::complex<double> temp_b = (0, 0i);
-        #pragma omp parallel for
+        #pragma omp parallel for reduction(+ : temp_b)
         for(int n_j = 0; n_j < b.size(); ++n_j){
             temp_b += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
         }
 
         std::complex<double> temp_a = (0, 0i);
-        #pragma omp parallel for
+        #pragma omp parallel for reduction(+ : temp_a)
         for(int n_j = 0; n_j < a.size(); ++n_j){
             temp_a += a[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
         }
