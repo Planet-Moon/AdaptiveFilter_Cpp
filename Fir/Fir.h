@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include "Matrix.h"
-#include "FilterReturnTypes.h"
+#include <Matrix.h>
+#include <FilterReturnTypes.h>
 
 class Fir{
 public:

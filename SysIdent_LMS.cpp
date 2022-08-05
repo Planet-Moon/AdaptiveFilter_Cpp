@@ -1,8 +1,7 @@
 #include <iostream>
-#include "AdaptiveFIR.h"
-#include "Fir.h"
-#include "WhiteNoise.h"
-#include "JsonServer.h"
+#include "AdaptiveLMS.h"
+#include <WhiteNoise.h>
+#include <JsonServer.h>
 #include <cmath>
 #include <chrono>
 #include "ExampleFir.h"
@@ -56,7 +55,7 @@ int main(int argc, char **argv){
             signal_noise[i] = noise.generate();
         }
 
-        AdaptiveFIR_LMS AFir(n_adaptive_filter, 0.2);
+        AdaptiveLMS AFir(n_adaptive_filter, 0.2);
 
         std::cout << time_now() << " - Running filters " << n << std::endl;
         Vec output(samples);
@@ -82,7 +81,7 @@ int main(int argc, char **argv){
     const auto output = Matrix::mean(output_mat, 1)[0];
 
     std::cout << time_now() << " - Calculating frequency response" << std::endl;
-    auto AFir_freqz = AdaptiveFIR_LMS::freqz(b[b.size()-1], 160);
+    auto AFir_freqz = AdaptiveLMS::freqz(b[b.size()-1], 160);
 
     std::cout << time_now() << " - Creating Json response" << std::endl;
 

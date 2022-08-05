@@ -1,14 +1,14 @@
 #pragma once
 #include <complex>
 #include <string>
-#include "Matrix.h"
-#include "AdaptiveFIR.h"
+#include <Matrix.h>
+#include <Fir.h>
 #include "json/json.h"
-#include "Fir.h"
 
-class AdaptiveFIR_LMS: public Fir{
+
+class AdaptiveRLS: public Fir{
 public:
-    AdaptiveFIR_LMS(unsigned int n, double mu);
+    AdaptiveRLS(unsigned int n, double p = 0.95);
     Vec filter(Vec b, Vec signal);
 
     UpdateStats update(double x, double d);
@@ -17,7 +17,9 @@ public:
     double error() const;
 
 protected:
-    double mu;
+    double p;
     double e;
+    Vec z;
     double y;
+    Mat R_inv;
 };

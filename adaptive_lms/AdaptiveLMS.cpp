@@ -1,16 +1,16 @@
-#include "AdaptiveFIR_LMS.h"
+#include "AdaptiveLMS.h"
 
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
 
-AdaptiveFIR_LMS::AdaptiveFIR_LMS(unsigned int n, double mu):
+AdaptiveLMS::AdaptiveLMS(unsigned int n, double mu):
     Fir(n), mu(mu)
 {
     e = 0.;
     y = 0.;
 }
 
-Vec AdaptiveFIR_LMS::filter(Vec b, Vec signal)
+Vec AdaptiveLMS::filter(Vec b, Vec signal)
 {
     const int signal_dim = signal.size();
     Vec result(signal_dim);
@@ -26,7 +26,7 @@ Vec AdaptiveFIR_LMS::filter(Vec b, Vec signal)
     return result;
 }
 
-UpdateStats AdaptiveFIR_LMS::update(double _x, double d)
+UpdateStats AdaptiveLMS::update(double _x, double d)
 {
     update_x(_x);
     y = 0;
@@ -46,12 +46,12 @@ UpdateStats AdaptiveFIR_LMS::update(double _x, double d)
     return us;
 }
 
-Vec AdaptiveFIR_LMS::predict(int samples, int delay) const
+Vec AdaptiveLMS::predict(int samples, int delay) const
 {
     return{};
 }
 
-double AdaptiveFIR_LMS::error() const
+double AdaptiveLMS::error() const
 {
     return e;
 }

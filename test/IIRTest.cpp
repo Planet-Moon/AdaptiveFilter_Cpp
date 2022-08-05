@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
-#include <IIR.h>
+#include <Iir.h>
+#include <fstream>
 #include <WhiteNoise.h>
 #include <FFT.h>
 #include <json/json.h>

@@ -12,43 +12,97 @@ endif()
 find_path(CPP_HTTPLIB_INCLUDE_DIRS "httplib.h")
 find_package(jsoncpp CONFIG REQUIRED)
 
-add_library(adaptiveFilterLib STATIC
-    FilterReturnTypes.h
-    FilterReturnTypes.cpp
-    AdaptiveFIR.h
-    AdaptiveFIR_RLS.h
-    AdaptiveFIR_RLS.cpp
-    AdaptiveFIR_LMS.h
-    AdaptiveFIR_LMS.cpp
-    Matrix.h
-    Matrix.cpp
-    WhiteNoise.h
-    WhiteNoise.cpp
-    Fir.h
-    Fir.cpp
-    IIR.h
-    IIR.cpp
-    FFT.h
-    FFT.cpp
-    JsonServer.h
-    JsonServer.cpp
+add_library(matrix STATIC
+    Matrix/Matrix.h
+    Matrix/Matrix.cpp
 )
-target_include_directories(adaptiveFilterLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(adaptiveFilterLib PRIVATE OpenMP::OpenMP_CXX)
-target_link_libraries(adaptiveFilterLib PUBLIC jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
-target_include_directories(adaptiveFilterLib PUBLIC ${CPP_HTTPLIB_INCLUDE_DIRS})
+target_include_directories(matrix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Matrix)
+target_link_libraries(matrix PUBLIC OpenMP::OpenMP_CXX)
+
+add_library(filterreturntypes STATIC
+    FilterReturnTypes/FilterReturnTypes.h
+    FilterReturnTypes/FilterReturnTypes.cpp
+)
+target_include_directories(filterreturntypes PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FilterReturnTypes)
+target_link_libraries(filterreturntypes PUBLIC matrix)
+target_link_libraries(filterreturntypes PUBLIC jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+
+add_library(fir STATIC
+    Fir/Fir.h
+    Fir/Fir.cpp
+)
+target_include_directories(fir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Fir)
+target_link_libraries(fir PUBLIC matrix filterreturntypes)
+
+add_library(iir STATIC
+    Iir/Iir.h
+    Iir/Iir.cpp
+)
+target_include_directories(iir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Iir)
+target_link_libraries(iir PUBLIC matrix filterreturntypes)
+
+add_library(fft STATIC
+    FFT/FFT.h
+    FFT/FFT.cpp
+)
+target_include_directories(fft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT)
+target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
+
+add_library(noise STATIC
+    Noise/WhiteNoise.h
+    Noise/WhiteNoise.cpp
+)
+target_include_directories(noise PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Noise)
+
+add_library(jsonserver STATIC
+    Server/JsonServer.h
+    Server/JsonServer.cpp
+)
+target_include_directories(jsonserver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Server)
+target_include_directories(jsonserver PUBLIC ${CPP_HTTPLIB_INCLUDE_DIRS})
+target_link_libraries(jsonserver PUBLIC jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+
+add_library(adaptiveRLS STATIC
+    adaptive_rls/AdaptiveRLS.h
+    adaptive_rls/AdaptiveRLS.cpp
+)
+target_include_directories(adaptiveRLS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adaptive_rls)
+target_link_libraries(adaptiveRLS PUBLIC fir)
+
+add_library(adaptiveLMS STATIC
+    adaptive_lms/AdaptiveLMS.h
+    adaptive_lms/AdaptiveLMS.cpp
+)
+target_include_directories(adaptiveLMS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adaptive_lms)
+target_link_libraries(adaptiveLMS PUBLIC fir)
+
+add_library(adaptiveFilterLib INTERFACE)
+target_include_directories(adaptiveFilterLib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(adaptiveFilterLib INTERFACE
+    adaptiveRLS
+    adaptiveLMS
+)
 
 add_executable(SysIdentRLS
     ExampleFir.h
     SysIdent_RLS.cpp
 )
-target_link_libraries(SysIdentRLS PUBLIC adaptiveFilterLib)
+target_link_libraries(SysIdentRLS PUBLIC
+    adaptiveRLS
+    noise
+    jsonserver
+)
+
 
 add_executable(SysIdentLMS
     ExampleFir.h
     SysIdent_LMS.cpp
 )
-target_link_libraries(SysIdentLMS PUBLIC adaptiveFilterLib)
+target_link_libraries(SysIdentLMS PUBLIC
+    adaptiveLMS
+    noise
+    jsonserver
+)
 
 add_subdirectory(test)
 

@@ -21,7 +21,9 @@ target_link_libraries(test
 target_link_libraries(test
     PRIVATE
         adaptiveFilterLib
-
+        iir
+        noise
+        fft
 )
 target_link_libraries(test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 target_include_directories(test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

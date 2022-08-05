@@ -1,4 +1,4 @@
-#include "AdaptiveFIR_RLS.h"
+#include "AdaptiveRLS.h"
 #include <Matrix.h>
 #include <cassert>
 #include <cmath>
@@ -6,7 +6,7 @@
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
 
-AdaptiveFIR_RLS::AdaptiveFIR_RLS(unsigned int n, double p):
+AdaptiveRLS::AdaptiveRLS(unsigned int n, double p):
     Fir(n), p(p)
 {
     R_inv = 1e9 * Matrix::identity(n);
@@ -15,7 +15,7 @@ AdaptiveFIR_RLS::AdaptiveFIR_RLS(unsigned int n, double p):
     y = 0.;
 }
 
-Vec AdaptiveFIR_RLS::filter(Vec b, Vec signal)
+Vec AdaptiveRLS::filter(Vec b, Vec signal)
 {
     const int signal_dim = signal.size();
     Vec result(signal_dim);
@@ -31,7 +31,7 @@ Vec AdaptiveFIR_RLS::filter(Vec b, Vec signal)
     return result;
 }
 
-UpdateStats AdaptiveFIR_RLS::update(double _x, double d)
+UpdateStats AdaptiveRLS::update(double _x, double d)
 {
     update_x(_x);
     Mat m_x = Matrix::fromVector(x);
@@ -61,7 +61,7 @@ UpdateStats AdaptiveFIR_RLS::update(double _x, double d)
     return us;
 }
 
-Vec AdaptiveFIR_RLS::predict(int samples, int delay) const
+Vec AdaptiveRLS::predict(int samples, int delay) const
 {
     Vec result(samples + n);
     #pragma omp parallel for
@@ -77,7 +77,7 @@ Vec AdaptiveFIR_RLS::predict(int samples, int delay) const
     return result;
 }
 
-double AdaptiveFIR_RLS::error() const
+double AdaptiveRLS::error() const
 {
     return e;
 }
