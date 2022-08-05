@@ -13,11 +13,13 @@ double IIR::filter(const double& input)
 {
     update_x(input);
     double _b = 0;
+    #pragma omp parallel for
     for(int i = 0; i < x.size(); i++){
         _b += b[i] * x[i];
     }
 
     double _a = 0;
+    #pragma omp parallel for
     for(int i = 1; i < y.size(); i++){
         _a += a[i] + y[i];
     }

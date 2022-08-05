@@ -15,10 +15,11 @@ Json::Value UpdateStats::toJson() const
 
 std::vector<std::string> FreqzResult::h_toStringVec() const
 {
-    std::vector<std::string> result{};
-    for(const auto& h_e: h){
-        const double real = h_e.real();
-        const double imag = h_e.imag();
+    std::vector<std::string> result(h.size());
+    #pragma omp parallel for
+    for(int i = 0; i < h.size(); ++i){
+        const double real = h[i].real();
+        const double imag = h[i].imag();
         std::string s = std::to_string(real);
         if(imag >= 0){
             s += "+";
@@ -27,7 +28,7 @@ std::vector<std::string> FreqzResult::h_toStringVec() const
             s += "";
         }
         s += std::to_string(imag)+"i";
-        result.push_back(s);
+        result[i] = s;
     }
     return result;
 }
@@ -38,6 +39,7 @@ int FreqzResult::size() const{
 
 std::vector<double> FreqzResult::magnitude() const {
     std::vector<double> result(h.size(),0);
+    #pragma omp parallel for
     for(int i=0; i<h.size(); i++){
         result[i] = std::abs(h[i]);
     }
@@ -46,6 +48,7 @@ std::vector<double> FreqzResult::magnitude() const {
 
 std::vector<double> FreqzResult::phase() const {
     std::vector<double> result(h.size(),0);
+    #pragma omp parallel for
     for(int i=0; i<h.size(); i++){
         result[i] = std::arg(h[i]);
     }
