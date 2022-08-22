@@ -23,7 +23,8 @@ int main(int argc, char **argv){
     const long long samples = 1e3;
 
     // Fir fir(filter_taps7);
-    Fir fir({1, 0.5, 0});
+    const Vec coefficients = {1, 0.5, 0};
+    Fir fir(coefficients);
     const int n_adaptive_filter = fir.get_n()+1;
 
     Mat error_mat = Matrix::zeros(N_RUNS, samples);
@@ -82,6 +83,7 @@ int main(int argc, char **argv){
 
     std::cout << time_now() << " - Calculating frequency response" << std::endl;
     auto AFir_freqz = AdaptiveLMS::freqz(b[b.size()-1], 160);
+    auto Fir_freqz = AdaptiveLMS::freqz(coefficients, 160);
 
     std::cout << time_now() << " - Creating Json response" << std::endl;
 
@@ -102,10 +104,19 @@ int main(int argc, char **argv){
     json["filter_parameters"] = jsonFilterParams;
     json["filter_parameters_time"] = JsonServer::fromMatrix(Matrix::transpose(b));
 
-    Json::Value jsonFreqz{};
-    jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
-    jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
-    json["freqz"] = jsonFreqz;
+    {
+        Json::Value jsonFreqz{};
+        jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
+        jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
+        json["adaptive_freqz"] = jsonFreqz;
+    }
+
+    {
+        Json::Value jsonFreqz{};
+        jsonFreqz["w"] = JsonServer::fromVector(Fir_freqz.w);
+        jsonFreqz["h"] = JsonServer::fromVector(Fir_freqz.h_toStringVec());
+        json["expected_freqz"] = jsonFreqz;
+    }
 
     std::cout << "Size of json: " << sizeof(json) << " bytes" << std::endl;
 

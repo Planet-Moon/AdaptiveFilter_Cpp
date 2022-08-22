@@ -1,3 +1,4 @@
+from cProfile import label
 import matplotlib.pyplot as plt
 import numpy as np
 import math
@@ -44,23 +45,34 @@ def main():
     ax[2].set_ylim(param_min+param_min*0.05, param_max+param_max*0.05)
 
     def plot_filter_response(data):
-        h, w =  np.array([complex(s.replace('i','j')) for s in data['freqz']['h']]), np.array(data['freqz']['w'])
-        w = w/(2*math.pi)
-        w = w[:math.floor(w.size*0.5)]
-        h = h[:w.size]
+        a_h, a_w =  np.array([complex(s.replace('i','j')) for s in data['adaptive_freqz']['h']]), np.array(data['adaptive_freqz']['w'])
+        a_w = a_w/(2*math.pi)
+        a_w = a_w[:math.floor(a_w.size*0.5)]
+        a_h = a_h[:a_w.size]
+
+        e_h, e_w =  np.array([complex(s.replace('i','j')) for s in data['expected_freqz']['h']]), np.array(data['expected_freqz']['w'])
+        e_w = e_w/(2*math.pi)
+        e_w = e_w[:math.floor(e_w.size*0.5)]
+        e_h = e_h[:e_w.size]
 
         fig, ax = plt.subplots(3, 1, constrained_layout=True)
-        ax[0].plot(w, abs(h))
+        ax[0].plot(a_w, abs(a_h), label="adaptive")
+        ax[0].plot(e_w, abs(e_h), label="expected")
         ax[0].set_title("Frequency response")
         ax[0].set_xlabel("\u03C9")
+        ax[0].legend()
 
-        ax[1].plot(w, 20 * np.log10(abs(h)))
+        ax[1].plot(a_w, 20 * np.log10(abs(a_h)), label="adaptive")
+        ax[1].plot(e_w, 20 * np.log10(abs(e_h)), label="expected")
         ax[1].set_title("Logarithmic frequency response")
         ax[1].set_xlabel("\u03C9")
+        ax[1].legend()
 
-        ax[2].plot(w, np.unwrap(np.angle(h)))
+        ax[2].plot(a_w, np.unwrap(np.angle(a_h)), label="adaptive")
+        ax[2].plot(e_w, np.unwrap(np.angle(e_h)), label="expected")
         ax[2].set_title("Phase response")
         ax[2].set_xlabel("\u03C9")
+        ax[2].legend()
 
     def plot_filter_parameters(data):
         param_data = data["filter_parameters_time"]
