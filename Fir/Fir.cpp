@@ -5,8 +5,6 @@
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
 
-#pragma omp declare reduction(+ : std::complex<double> : omp_out += omp_in)
-
 Fir::Fir(const Vec& b): b(b), n(b.size())
 {
     x = Vec(n, 0);
@@ -76,7 +74,7 @@ FreqzResult Fir::freqz(const Vec& b, int samples /* = 50 */)
     for(int n_i = 0; n_i < samples; ++n_i){
         const double angle = 2 * PI * n_i/(samples-1);
         std::complex<double> temp = (0, 0i);
-        #pragma omp parallel for reduction(+ : temp)
+        #pragma omp parallel for
         for(int n_j = 0; n_j < n; ++n_j){
             temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
         }

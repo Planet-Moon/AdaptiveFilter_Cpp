@@ -14,7 +14,7 @@ Vec operator*(const Mat &a, const Vec &x)
     #pragma omp parallel for
     for(i = 0; i < m; i++){
         double temp = 0.;
-        #pragma omp parallel for reduction(+ : temp)
+        #pragma omp parallel for
         for(j = 0; j < n; j++)
             temp += a[i][j]*x[j];
         prod[i] = temp;
@@ -50,7 +50,7 @@ Mat operator+(const Mat &m1, const Mat &m2)
     assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
     Vec v(m1[0].size());
     Mat result(m1.size(), v);
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for
     for(int i = 0; i < m1.size(); ++i){
         for(int j = 0; j < m1[i].size(); ++j){
             result[i][j] = m1[i][j] + m2[i][j];
@@ -64,7 +64,7 @@ Mat operator-(const Mat &m1, const Mat &m2)
     assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
     Vec v(m1[0].size());
     Mat result(m1.size(), v);
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for
     for(int i = 0; i < m1.size(); ++i){
         for(int j = 0; j < m1[i].size(); ++j){
             result[i][j] = m1[i][j] - m2[i][j];
