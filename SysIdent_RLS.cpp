@@ -86,8 +86,9 @@ int main(int argc, char **argv){
     const auto output = Matrix::mean(output_mat, 1)[0];
 
     std::cout << time_now() << " - Calculating frequency response" << std::endl;
-    auto AFir_freqz = Fir::freqz(b[b.size() - 1], 160);
-    auto Fir_freqz = Fir::freqz(coefficients, 160);
+    const int freqz_points{5000};
+    auto AFir_freqz = Fir::freqz(b[b.size() - 1], freqz_points);
+    auto Fir_freqz = Fir::freqz(coefficients, freqz_points);
 
     std::cout << time_now() << " - Creating Json response" << std::endl;
 
@@ -126,7 +127,7 @@ int main(int argc, char **argv){
 
     std::cout << time_now() << " - Running server" << std::endl;
     JsonServer jServer(80,json);
-    jServer.host_blocking(false);
+    jServer.host_blocking(true);
 
     return 0;
 }
