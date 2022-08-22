@@ -17,7 +17,7 @@ Vec AdaptiveLMS::filter(Vec b, Vec signal)
     #pragma omp parallel for
     for(int i = n-1; i < signal_dim; ++i){
         double fir_sum = 0;
-        #pragma omp parallel for reduction(+ : fir_sum)
+        #pragma omp parallel for
         for(int n_i = 0; n_i < n; ++n_i){
             fir_sum += signal[i-n_i] * b[n_i];
         }

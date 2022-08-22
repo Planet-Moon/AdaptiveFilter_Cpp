@@ -12,7 +12,7 @@ std::vector<std::complex<double>> FFT::dft(std::vector<double> const& input){
         std::complex<double> sum;
         #pragma omp parallel for
         for(int j = 0; j < n; ++j){
-            std::complex<double> angle = 2i * static_cast<double>(PI * j * i / n);
+            const std::complex<double> angle{2i * static_cast<double>(PI * j * i / n)};
             sum += input[j] * exp(-angle);
         }
         output[i] = sum;

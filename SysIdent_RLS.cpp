@@ -26,7 +26,7 @@ int main(int argc, char **argv){
     const long long samples = 1e3;
 
     // Fir fir(filter_taps7);
-    Fir fir({1,0.5,0});
+    Fir fir({16,4,2,1,0.25,0});
     const int n_adaptive_filter = fir.get_n()+1;
 
     Mat error_mat = Matrix::zeros(N_RUNS, samples);
@@ -51,7 +51,6 @@ int main(int argc, char **argv){
         }
     }
 
-    #pragma omp parallel for ordered schedule(static)
     for(int n=0; n < N_RUNS; ++n){
         WhiteNoise noise(0, 0.5);
 
