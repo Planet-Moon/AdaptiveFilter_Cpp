@@ -109,3 +109,5 @@ add_subdirectory(test)
 add_executable(PlotTest PlotTest.cpp)
 find_package(sciplot CONFIG REQUIRED)
 target_link_libraries(PlotTest PRIVATE sciplot::sciplot)
+
+add_subdirectory(kalman)

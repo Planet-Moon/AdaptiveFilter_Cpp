@@ -28,6 +28,20 @@ Vec operator+(const Vec &v1, const Vec &v2);
 Vec operator-(const Vec &v1, const Vec &v2);
 
 template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+Vec operator+(const Vec &v, const T &scalar){
+    Vec result = v;
+    for(auto& i: result){
+        i += scalar;
+    }
+    return result;
+}
+
+template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+Vec operator+(const T &scalar, const Vec &v){
+    return v+scalar;
+}
+
+template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 Mat operator*(const T &scalar, const Mat &a){
     Mat result = a;
     for(int i = 0; i < result.size(); ++i){
