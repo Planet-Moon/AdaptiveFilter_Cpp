@@ -1,5 +1,7 @@
 #include "FFT.h"
 #include <cmath>
+#include <FftComplex.hpp>
+#include <algorithm>
 
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
@@ -18,6 +20,15 @@ std::vector<std::complex<double>> FFT::dft(std::vector<double> const& input){
         output[i] = sum;
     }
     return output;
+}
+
+std::vector<std::complex<double>> FFT::fft(std::vector<double> const& input){
+    std::vector<std::complex<double>> vec(input.size());
+    std::transform(input.begin(), input.end(), vec.begin(), [](const double& in){
+        return std::complex<double>(in, 0);
+    });
+    Fft::transform(vec, false);
+    return vec;
 }
 
 std::vector<FFT::PlotData> FFT::plotable_dft(std::vector<std::complex<double>> const& dft_output, double const& sample_frequency)

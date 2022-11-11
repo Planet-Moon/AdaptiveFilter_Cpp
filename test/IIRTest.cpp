@@ -60,11 +60,16 @@ TEST(IIR, Filter){
 
     const auto dft_unfiltered = FFT::dft(input);
     const auto dft_filtered = FFT::dft(result);
+    const auto fft_unfiltered = FFT::fft(input);
+    const auto fft_filtered = FFT::fft(result);
 
-    const auto unfiltered = FFT::plotable_dft(dft_unfiltered, 200);
-    const auto filtered = FFT::plotable_dft(dft_filtered, 200);
+    const auto dft_unfiltered_plot = FFT::plotable_dft(dft_unfiltered, 200);
+    const auto dft_filtered_plot = FFT::plotable_dft(dft_filtered, 200);
+    const auto fft_unfiltered_plot = FFT::plotable_dft(fft_unfiltered, 200);
+    const auto fft_filtered_plot = FFT::plotable_dft(fft_filtered, 200);
 
-    write_to_file(input, result, unfiltered, filtered);
+    write_to_file(input, result, dft_unfiltered_plot, dft_filtered_plot);
+    write_to_file(input, result, fft_unfiltered_plot, fft_filtered_plot);
 }
 
 TEST(IIR, freqz){

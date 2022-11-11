@@ -6,6 +6,7 @@
 class FFT{
 public:
     static std::vector<std::complex<double>> dft(std::vector<double> const& input);
+    static std::vector<std::complex<double>> fft(std::vector<double> const& input);
 
     struct PlotDataFormatted{
         double freq;

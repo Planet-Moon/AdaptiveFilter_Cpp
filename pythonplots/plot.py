@@ -79,8 +79,9 @@ def main():
 
         x = np.arange(0, len(param_data[0]))
         fix, ax = plt.subplots(1, 1)
-        for i in param_data:
-            ax.plot(x, i)
+        for i in range(len(param_data)):
+            ax.plot(x, param_data[i], label='Param {}'.format(i))
+        ax.legend()
         ax.set_title("Param 0")
 
 

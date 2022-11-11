@@ -41,11 +41,28 @@ add_library(iir STATIC
 target_include_directories(iir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Iir)
 target_link_libraries(iir PUBLIC matrix filterreturntypes)
 
+add_library(FftRealPair STATIC
+    FFT/RealPair/FftRealPair.cpp
+    FFT/RealPair/FftRealPair.hpp
+)
+target_include_directories(FftRealPair PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT/RealPair)
+add_executable(FftRealPairTest FFT/RealPair/FftRealPairTest.cpp)
+target_link_libraries(FftRealPairTest FftRealPair)
+
+add_library(FftComplex STATIC
+    FFT/Complex/FftComplex.cpp
+    FFT/Complex/FftComplex.hpp
+)
+target_include_directories(FftComplex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT/Complex)
+add_executable(FftComplexTest FFT/Complex/FftComplexTest.cpp)
+target_link_libraries(FftComplexTest FftComplex)
+
 add_library(fft STATIC
     FFT/FFT.h
     FFT/FFT.cpp
 )
 target_include_directories(fft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT)
+target_link_libraries(fft PUBLIC FftComplex)
 target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 
 add_library(noise STATIC
