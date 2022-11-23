@@ -3,7 +3,7 @@
 #include <json/json.h>
 #include <thread>
 
-const float M_PI = cos(-1);
+const float M_PI = acos(-1);
 
 class SinusGenerator{
 public:
@@ -19,8 +19,12 @@ public:
     void setSampleTime(float sample_time) { _sample_time = sample_time; }
 
     float next(){
-        float res = _amp * sin(_timestep * _freq * M_PI * 2);
+        float res = _amp * sin(2 * M_PI * _freq * _timestep);
         _timestep += _sample_time;
+        if(_timestep > 1/_freq){
+            int ratio = _timestep/_sample_time;
+            _timestep = _sample_time*(_timestep/_sample_time - ratio);
+        }
         return res;
     }
 
@@ -36,7 +40,7 @@ int main(int argc, char **argv){
     SinusGenerator sinusGenerator;
     sinusGenerator.setAmplitude(1);
     sinusGenerator.setFrequency(1);
-    sinusGenerator.setSampleTime(0.1);
+    sinusGenerator.setSampleTime(0.01);
     int counter = 0;
     while(counter > -1){
         std::cout << sinusGenerator.next() << std::endl;
