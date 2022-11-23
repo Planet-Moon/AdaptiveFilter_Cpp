@@ -19,7 +19,7 @@ public:
     void setSampleTime(float sample_time) { _sample_time = sample_time; }
 
     float next(){
-        float res = _amp * sin(_timestep * _freq * M_PI/180); // !BUG
+        float res = _amp * sin(_timestep * _freq * M_PI * 2);
         _timestep += _sample_time;
         return res;
     }
