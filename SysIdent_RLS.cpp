@@ -26,9 +26,9 @@ int main(int argc, char **argv){
     const long long samples = 1e3;
 
     // Fir fir(filter_taps7);
-    const Vec coefficients = {16,4,2,1,0.25,0};
+    const Vec coefficients = {0.2, 0.2, 0.2, 0.2, 0.2};
     Fir fir(coefficients);
-    const int n_adaptive_filter = fir.get_n()+1;
+    const int n_adaptive_filter = fir.get_n();
 
     Mat error_mat = Matrix::zeros(N_RUNS, samples);
     Mat3 b_mat = Matrix::zeros(N_RUNS, samples, n_adaptive_filter);

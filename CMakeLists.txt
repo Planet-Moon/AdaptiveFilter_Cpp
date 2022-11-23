@@ -65,6 +65,17 @@ target_include_directories(fft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT)
 target_link_libraries(fft PUBLIC FftComplex)
 target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 
+add_executable(fft_stream
+    FFT/Stream/FFTStream.cpp
+)
+target_link_libraries(fft_stream PRIVATE fft)
+target_link_libraries(fft_stream PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+
+add_executable(fft_stream_test
+    FFT/Stream/test/FFTStreamTest.cpp
+)
+target_link_libraries(fft_stream_test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+
 add_library(noise STATIC
     Noise/WhiteNoise.h
     Noise/WhiteNoise.cpp
@@ -123,7 +134,7 @@ target_link_libraries(SysIdentLMS PUBLIC
 
 add_subdirectory(test)
 
-add_executable(PlotTest PlotTest.cpp)
+add_executable(PlotTest EXCLUDE_FROM_ALL PlotTest.cpp)
 find_package(sciplot CONFIG REQUIRED)
 target_link_libraries(PlotTest PRIVATE sciplot::sciplot)
 
