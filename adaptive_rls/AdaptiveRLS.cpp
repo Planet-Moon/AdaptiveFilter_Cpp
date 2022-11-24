@@ -34,11 +34,10 @@ Vec AdaptiveRLS::filter(Vec b, Vec signal)
 UpdateStats AdaptiveRLS::update(double _x, double d)
 {
     update_x(_x);
-    Mat m_x = Matrix::fromVector(x);
-    Vec y_v = m_x * b;
+    Mat x_m = Matrix::fromVector(x);
+    Vec y_v = x_m * b;
     double y = y_v[0];
     e = d - y;
-    Mat x_m = Matrix::fromVector(x);
     Vec z;
     {
         Vec numerator = R_inv * x;
