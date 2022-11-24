@@ -133,6 +133,9 @@ target_link_libraries(SysIdentLMS PUBLIC
     jsonserver
 )
 
+add_executable(Compare_LMS_RLS Compare_LMS_RLS.cpp)
+target_link_libraries(Compare_LMS_RLS PUBLIC adaptiveLMS adaptiveRLS noise jsonserver)
+
 add_subdirectory(test)
 
 add_executable(PlotTest EXCLUDE_FROM_ALL PlotTest.cpp)
