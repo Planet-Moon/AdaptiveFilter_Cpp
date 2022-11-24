@@ -31,18 +31,55 @@ struct FilterInfo{
     Mat output_mat;
 };
 
+Json::Value generateJson(const FilterInfo& info, const std::vector<UpdateStats>& v_UpdateStats, const int freqz_points = 5000){
+    Json::Value json;
+    const auto error = Matrix::mean(info.error_mat, 1)[0];
+    const auto b = Matrix::mean(info.b_mat, 3);
+    const auto input = Matrix::mean(info.input_mat, 1)[0];
+    const auto output = Matrix::mean(info.output_mat, 1)[0];
+
+    std::cout << time_now() << " - Calculating frequency response" << std::endl;
+    auto freqz = Fir::freqz(b[b.size() - 1], freqz_points);
+
+    std::cout << time_now() << " - Creating Json response" << std::endl;
+
+    json["input"] = JsonServer::fromVector(input);
+    json["output"] = JsonServer::fromVector(output);
+
+    Json::Value jsonUpdateStats{};
+    auto _v_UpdateStats = v_UpdateStats;
+    for(int i=0; i<_v_UpdateStats.size(); ++i){
+        _v_UpdateStats[i].error = error[i];
+        jsonUpdateStats[i] = _v_UpdateStats[i].toJson();
+    }
+    json["update_stats"] = jsonUpdateStats;
+
+    Json::Value jsonFilterParams{};
+
+    json["filter_parameters"] = JsonServer::fromVector(b[b.size()-1]);;
+    json["filter_parameters_time"] = JsonServer::fromMatrix(Matrix::transpose(b));
+
+    {
+        Json::Value jsonFreqz{};
+        jsonFreqz["w"] = JsonServer::fromVector(freqz.w);
+        jsonFreqz["h"] = JsonServer::fromVector(freqz.h_toStringVec());
+        json["adaptive_freqz"] = jsonFreqz;
+    }
+    return json;
+}
+
 int main(int argc, char **argv){
 
     std::cout<< "Number of threads: " << omp_get_num_threads() << std::endl;
     std::cout<< time_now() << " - Program start" << std::endl;
 
     const int N_RUNS = 1e2;
-    const long long samples = 1e4;
+    const long long samples = 1.5e3;
 
     Fir fir(filter_taps7);
     const Vec coefficients = {0.2, 0.2, 0.2, 0.2, 0.2};
     // Fir fir(coefficients);
-    const int n_adaptive_filter = fir.get_n();
+    const int n_adaptive_filter = fir.get_n()+1;
 
     FilterInfo ALMS_info(N_RUNS, samples, n_adaptive_filter);
     FilterInfo ARLS_info(N_RUNS, samples, n_adaptive_filter);
@@ -107,95 +144,26 @@ int main(int argc, char **argv){
     }
 
     Json::Value json;
-    { // Calc stuff for LMS
-        const auto error = Matrix::mean(ALMS_info.error_mat, 1)[0];
-        const auto b = Matrix::mean(ALMS_info.b_mat, 3);
-        const auto input = Matrix::mean(ALMS_info.input_mat, 1)[0];
-        const auto output = Matrix::mean(ALMS_info.output_mat, 1)[0];
+    const int freqz_points{5000};
 
-        std::cout << time_now() << " - Calculating frequency response" << std::endl;
-        const int freqz_points{5000};
-        auto AFir_freqz = Fir::freqz(b[b.size() - 1], freqz_points);
+    { // Calc stuff for FIR reference
+        Json::Value fir_ref_json;
         auto Fir_freqz = Fir::freqz(coefficients, freqz_points);
+        Json::Value jsonFreqz{};
+        jsonFreqz["w"] = JsonServer::fromVector(Fir_freqz.w);
+        jsonFreqz["h"] = JsonServer::fromVector(Fir_freqz.h_toStringVec());
+        fir_ref_json["expected_freqz"] = jsonFreqz;
+        fir_ref_json["filter_parameters"] = JsonServer::fromVector(fir.get_b());
+        json["fir_ref"] = fir_ref_json;
+    }
 
-        std::cout << time_now() << " - Creating Json response" << std::endl;
-
-        Json::Value jsonLMS;
-        jsonLMS["input"] = JsonServer::fromVector(input);
-        jsonLMS["output"] = JsonServer::fromVector(output);
-
-        Json::Value jsonUpdateStats{};
-        for(int i=0; i<ALMS_firstFilterStats.size(); ++i){
-            ALMS_firstFilterStats[i].error = error[i];
-            jsonUpdateStats[i] = ALMS_firstFilterStats[i].toJson();
-        }
-        jsonLMS["update_stats"] = jsonUpdateStats;
-
-        Json::Value jsonFilterParams{};
-        jsonFilterParams["system"] = JsonServer::fromVector(fir.get_b());
-        jsonFilterParams["identification"] = JsonServer::fromVector(b[b.size()-1]);
-        jsonLMS["filter_parameters"] = jsonFilterParams;
-        jsonLMS["filter_parameters_time"] = JsonServer::fromMatrix(Matrix::transpose(b));
-
-        {
-            Json::Value jsonFreqz{};
-            jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
-            jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
-            jsonLMS["adaptive_freqz"] = jsonFreqz;
-        }
-
-        {
-            Json::Value jsonFreqz{};
-            jsonFreqz["w"] = JsonServer::fromVector(Fir_freqz.w);
-            jsonFreqz["h"] = JsonServer::fromVector(Fir_freqz.h_toStringVec());
-            jsonLMS["expected_freqz"] = jsonFreqz;
-        }
+    { // Calc stuff for LMS
+        Json::Value jsonLMS = generateJson(ALMS_info, ALMS_firstFilterStats, freqz_points);
         json["LMS"] = jsonLMS;
     }
 
     { // Calc stuff for RLS
-        const auto error = Matrix::mean(ARLS_info.error_mat, 1)[0];
-        const auto b = Matrix::mean(ARLS_info.b_mat, 3);
-        const auto input = Matrix::mean(ARLS_info.input_mat, 1)[0];
-        const auto output = Matrix::mean(ARLS_info.output_mat, 1)[0];
-
-        std::cout << time_now() << " - Calculating frequency response" << std::endl;
-        const int freqz_points{5000};
-        auto AFir_freqz = Fir::freqz(b[b.size() - 1], freqz_points);
-        auto Fir_freqz = Fir::freqz(coefficients, freqz_points);
-
-        std::cout << time_now() << " - Creating Json response" << std::endl;
-
-        Json::Value jsonRLS;
-        jsonRLS["input"] = JsonServer::fromVector(input);
-        jsonRLS["output"] = JsonServer::fromVector(output);
-
-        Json::Value jsonUpdateStats{};
-        for(int i=0; i<ARLS_firstFilterStats.size(); ++i){
-            ARLS_firstFilterStats[i].error = error[i];
-            jsonUpdateStats[i] = ARLS_firstFilterStats[i].toJson();
-        }
-        jsonRLS["update_stats"] = jsonUpdateStats;
-
-        Json::Value jsonFilterParams{};
-        jsonFilterParams["system"] = JsonServer::fromVector(fir.get_b());
-        jsonFilterParams["identification"] = JsonServer::fromVector(b[b.size()-1]);
-        jsonRLS["filter_parameters"] = jsonFilterParams;
-        jsonRLS["filter_parameters_time"] = JsonServer::fromMatrix(Matrix::transpose(b));
-
-        {
-            Json::Value jsonFreqz{};
-            jsonFreqz["w"] = JsonServer::fromVector(AFir_freqz.w);
-            jsonFreqz["h"] = JsonServer::fromVector(AFir_freqz.h_toStringVec());
-            jsonRLS["adaptive_freqz"] = jsonFreqz;
-        }
-
-        {
-            Json::Value jsonFreqz{};
-            jsonFreqz["w"] = JsonServer::fromVector(Fir_freqz.w);
-            jsonFreqz["h"] = JsonServer::fromVector(Fir_freqz.h_toStringVec());
-            jsonRLS["expected_freqz"] = jsonFreqz;
-        }
+        Json::Value jsonRLS = generateJson(ARLS_info, ARLS_firstFilterStats, freqz_points);
         json["RLS"] = jsonRLS;
     }
 

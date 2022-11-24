@@ -33,32 +33,28 @@ def main():
     ax[0].legend()
 
     LMS_predicted_values = LMS_data['output']
-    LMS_signal = LMS_data['input']
     RLS_predicted_values = RLS_data['output']
-    RLS_signal = RLS_data['input']
+    input_signal = RLS_data['input']
 
-    l1, l2 = ax[1].plot(LMS_predicted_values, "-x", LMS_signal)
-    l3, l4 = ax[1].plot(RLS_predicted_values, "-x", RLS_signal)
-    ax[1].legend((l1, l2, l3, l4), ('LMS Prediction',
-                 'LMS Signal', 'RLS Prediction', 'RLS Signal'))
+    l1, l2, l3 = ax[1].plot(LMS_predicted_values, "-x",
+                            RLS_predicted_values, "-o", input_signal)
+    ax[1].legend((l1, l2, l3), ('LMS Prediction',
+                 'RLS Prediction', 'Input'))
     ax[1].set_xlabel("samples")
 
-    sig_max = max([max(LMS_signal), max(RLS_signal)])
-    sig_min = min([min(LMS_signal), min(RLS_signal)])
+    sig_max = max([max(input_signal), max(LMS_predicted_values)])
+    sig_min = min([min(input_signal), min(RLS_predicted_values)])
     range_signal = sig_max - sig_min
     ax[1].set_ylim(sig_min - range_signal*0.1, sig_max + range_signal*0.1)
 
-    LMS_system_parameters = LMS_data['filter_parameters']['system']
-    LMS_identified_parameters = LMS_data['filter_parameters']['identification']
-    RLS_system_parameters = RLS_data['filter_parameters']['system']
-    RLS_identified_parameters = RLS_data['filter_parameters']['identification']
+    system_parameters = data['fir_ref']['filter_parameters']
+    LMS_identified_parameters = LMS_data['filter_parameters']
+    RLS_identified_parameters = RLS_data['filter_parameters']
 
-    l5, l6 = ax[2].plot(LMS_system_parameters, "-x",
-                        LMS_identified_parameters, "-o")
-    l7, l8 = ax[2].plot(RLS_system_parameters, "-x",
-                        RLS_identified_parameters, "-o")
-    ax[2].legend((l5, l6, l7, l8), ('LMS System',
-                 'LMS Identification', 'RLS System', 'RLS Identification'))
+    l4, l5, l6 = ax[2].plot(system_parameters, "-x",
+                            LMS_identified_parameters, "-o", RLS_identified_parameters, "--")
+    ax[2].legend(
+        (l4, l5, l6), ('System', 'LMS Identification', 'RLS Identification'))
     ax[2].set_xlabel("b")
 
     def find_min_max(v1, v2):
@@ -67,13 +63,20 @@ def main():
         return _max, _min
 
     param_max, param_min = find_min_max(
-        find_min_max(LMS_system_parameters, LMS_identified_parameters),
-        find_min_max(RLS_system_parameters, RLS_identified_parameters))
+        find_min_max(system_parameters, LMS_identified_parameters),
+        find_min_max(system_parameters, RLS_identified_parameters))
     ax[2].set_ylim(param_min-param_min*0.05, param_max*1.05)
 
     def plot_filter_response(data):
         LMS_data = data["LMS"]
         RLS_data = data["RLS"]
+        system_data = data["fir_ref"]
+
+        sys_e_h, sys_e_w = np.array([complex(s.replace('i', 'j'))
+                                     for s in system_data['expected_freqz']['h']]), np.array(system_data['expected_freqz']['w'])
+        sys_e_w = sys_e_w/(2*math.pi)
+        sys_e_w = sys_e_w[:math.floor(sys_e_w.size*0.5)]
+        sys_e_h = sys_e_h[:sys_e_w.size]
 
         lms_a_h, lms_a_w = np.array([complex(s.replace('i', 'j'))
                                      for s in LMS_data['adaptive_freqz']['h']]), np.array(LMS_data['adaptive_freqz']['w'])
@@ -81,45 +84,30 @@ def main():
         lms_a_w = lms_a_w[:math.floor(lms_a_w.size*0.5)]
         lms_a_h = lms_a_h[:lms_a_w.size]
 
-        lms_e_h, lms_e_w = np.array([complex(s.replace('i', 'j'))
-                                     for s in LMS_data['expected_freqz']['h']]), np.array(LMS_data['expected_freqz']['w'])
-        lms_e_w = lms_e_w/(2*math.pi)
-        lms_e_w = lms_e_w[:math.floor(lms_e_w.size*0.5)]
-        lms_e_h = lms_e_h[:lms_e_w.size]
-
         rls_a_h, rls_a_w = np.array([complex(s.replace('i', 'j'))
                                      for s in RLS_data['adaptive_freqz']['h']]), np.array(RLS_data['adaptive_freqz']['w'])
         rls_a_w = rls_a_w/(2*math.pi)
         rls_a_w = rls_a_w[:math.floor(rls_a_w.size*0.5)]
         rls_a_h = rls_a_h[:rls_a_w.size]
 
-        rls_e_h, rls_e_w = np.array([complex(s.replace('i', 'j'))
-                                     for s in RLS_data['expected_freqz']['h']]), np.array(RLS_data['expected_freqz']['w'])
-        rls_e_w = rls_e_w/(2*math.pi)
-        rls_e_w = rls_e_w[:math.floor(rls_e_w.size*0.5)]
-        rls_e_h = rls_e_h[:rls_e_w.size]
-
         fig, ax = plt.subplots(3, 1, constrained_layout=True)
+        ax[0].plot(sys_e_w, abs(sys_e_h), label="Fir System")
         ax[0].plot(lms_a_w, abs(lms_a_h), label="LMS adaptive")
-        ax[0].plot(lms_e_w, abs(lms_e_h), label="LMS expected")
         ax[0].plot(rls_a_w, abs(rls_a_h), label="RLS adaptive")
-        ax[0].plot(rls_e_w, abs(rls_e_h), label="RLS expected")
         ax[0].set_title("Frequency response")
         ax[0].set_xlabel("\u03C9")
         ax[0].legend()
 
+        ax[1].plot(sys_e_w, 20 * np.log10(abs(sys_e_h)), label="Fir System")
         ax[1].plot(lms_a_w, 20 * np.log10(abs(lms_a_h)), label="LMS adaptive")
-        ax[1].plot(lms_e_w, 20 * np.log10(abs(lms_e_h)), label="LMS expected")
         ax[1].plot(rls_a_w, 20 * np.log10(abs(rls_a_h)), label="RLS adaptive")
-        ax[1].plot(rls_e_w, 20 * np.log10(abs(rls_e_h)), label="RLS expected")
         ax[1].set_title("Logarithmic frequency response")
         ax[1].set_xlabel("\u03C9")
         ax[1].legend()
 
+        ax[2].plot(sys_e_w, np.unwrap(np.angle(sys_e_h)), label="Fir System")
         ax[2].plot(lms_a_w, np.unwrap(np.angle(lms_a_h)), label="LMS adaptive")
-        ax[2].plot(lms_e_w, np.unwrap(np.angle(lms_e_h)), label="LMS expected")
         ax[2].plot(rls_a_w, np.unwrap(np.angle(rls_a_h)), label="RLS adaptive")
-        ax[2].plot(rls_e_w, np.unwrap(np.angle(rls_e_h)), label="RLS expected")
         ax[2].set_title("Phase response")
         ax[2].set_xlabel("\u03C9")
         ax[2].legend()
