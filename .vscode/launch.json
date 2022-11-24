@@ -5,6 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python: Plot fft stream",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/FFT/Stream/test/live_plot.py",
+      "console": "externalTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "Python: Current File",
       "type": "python",
       "request": "launch",
