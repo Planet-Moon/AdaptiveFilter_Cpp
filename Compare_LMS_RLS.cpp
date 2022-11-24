@@ -76,9 +76,9 @@ int main(int argc, char **argv){
     const int N_RUNS = 1e2;
     const long long samples = 1.5e3;
 
-    Fir fir(filter_taps7);
-    const Vec coefficients = {0.2, 0.2, 0.2, 0.2, 0.2};
-    // Fir fir(coefficients);
+    const Vec coefficients = filter_taps7;
+    // const Vec coefficients = {0.2, 0.2, 0.2, 0.2, 0.2};
+    Fir fir(coefficients);
     const int n_adaptive_filter = fir.get_n()+1;
 
     FilterInfo ALMS_info(N_RUNS, samples, n_adaptive_filter);
