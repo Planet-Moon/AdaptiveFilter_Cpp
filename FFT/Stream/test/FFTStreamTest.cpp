@@ -4,6 +4,7 @@
 #include <json/json.h>
 #include <thread>
 #include <httplib.h>
+#include <WhiteNoise.h>
 
 
 const float M_PI = acos(-1);
@@ -24,7 +25,9 @@ public:
     SinusGenerator(){}
 
     float getFrequency() const { return _freq; }
-    void setFrequency(float frequency) { _freq = frequency; }
+    void setFrequency(float frequency) {
+        _next_freq = frequency;
+    }
 
     float getAmplitude() const { return _amp; }
     void setAmplitude(float amplitude) { _amp = amplitude; }
@@ -38,8 +41,15 @@ public:
         float res = _amp * sin(2 * M_PI * _freq * _timestep);
         _timestep += _sample_time;
         if(_timestep > 1/_freq){
-            int ratio = _timestep/_sample_time;
-            _timestep = _sample_time*(_timestep/_sample_time - ratio);
+            if(_next_freq > 0){
+                _freq = _next_freq;
+                _timestep = 0;
+                _next_freq = -1;
+            }
+            else{
+                int ratio = _timestep/_sample_time;
+                _timestep = _sample_time*(_timestep/_sample_time - ratio);
+            }
         }
         _continuos_time += _sample_time;
         return res;
@@ -47,6 +57,7 @@ public:
 
 private:
     float _freq=1;
+    float _next_freq=-1;
     float _amp=1;
 
     float _timestep=0;
@@ -72,7 +83,7 @@ void server_thread_func(std::shared_ptr<httplib::Server> server, const char* add
     server->listen(address, port);
 }
 
-int main(int argc, char **argv){
+int data_generator(){
     std::shared_ptr<httplib::Server> svr = std::make_shared<httplib::Server>();
     std::shared_ptr<std::vector<float>> value = std::make_shared<std::vector<float>>(0);
     std::shared_ptr<std::vector<float>> time = std::make_shared<std::vector<float>>(0);
@@ -91,19 +102,56 @@ int main(int argc, char **argv){
 
     SinusGenerator sinusGenerator;
     sinusGenerator.setAmplitude(1);
-    sinusGenerator.setFrequency(1);
+    sinusGenerator.setFrequency(0.5);
+    float min_freq = 0.1;
+    float max_freq = 10;
+    float freq_speed = 1.2;
+    float next_freq = sinusGenerator.getFrequency() + freq_speed;
+    bool direction = true;
     sinusGenerator.setSampleTime(0.01);
+
+    WhiteNoise noise(0.f, 0.01f);
+
     int counter = 0;
     std::thread server_thread(server_thread_func, svr, "0.0.0.0", 8800);
     while(true){
         if(*_run){
-            value->push_back(sinusGenerator.next());
+            const auto freq = sinusGenerator.getFrequency();
+            if(freq >= max_freq){
+                direction = false;
+            }
+            else if(freq <= min_freq){
+                direction = true;
+            }
+
+            if(next_freq == freq){
+                if(direction){
+                    next_freq = freq + freq_speed;
+                }
+                else{
+                    next_freq = freq - freq_speed;
+                }
+            }
+            if(next_freq < min_freq){
+                next_freq = min_freq;
+            }
+            else if(next_freq > max_freq){
+                next_freq = max_freq;
+            }
+            sinusGenerator.setFrequency(next_freq);
+
+            float next_value = sinusGenerator.next()+noise.generate();
+            value->push_back(next_value);
             time->push_back(sinusGenerator.getTime());
-            std::cout << time->back() << ": " << value->back() << std::endl;
+            std::cout << "{\"time\":" << time->back() << ",\"value\": " << value->back() << "}" << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     svr->stop();
     server_thread.join();
     return 0;
+}
+
+int main(int argc, char **argv){
+    return data_generator();
 }

@@ -68,6 +68,7 @@ target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 add_executable(fft_stream
     FFT/Stream/FFTStream.cpp
 )
+target_include_directories(fft_stream PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream PRIVATE fft)
 target_link_libraries(fft_stream PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 
@@ -76,6 +77,7 @@ add_executable(fft_stream_test
 )
 target_include_directories(fft_stream_test PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream_test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+target_link_libraries(fft_stream_test PRIVATE noise)
 
 add_library(noise STATIC
     Noise/WhiteNoise.h

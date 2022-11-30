@@ -1,12 +1,12 @@
 #include "WhiteNoise.h"
 #include <chrono>
 
-WhiteNoise::WhiteNoise(double mean, double variance):
-    mean(mean), stddev(variance)
+WhiteNoise::WhiteNoise(double mean, double stdev_):
+    mean(mean), stddev(stdev_)
 {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     generator = std::default_random_engine(seed);
-    distribution = std::normal_distribution<double>(0.0,1.0);
+    distribution = std::normal_distribution<double>(mean, stddev);
 }
 
 double WhiteNoise::generate()

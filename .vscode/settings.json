@@ -7,6 +7,7 @@
         "Qt5_DIR":"D:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5",
     },
     "files.associations": {
+        "*.ttconfig": "json",
         "vector": "cpp",
         "algorithm": "cpp",
         "any": "cpp",
@@ -89,6 +90,7 @@
         "xutility": "cpp",
         "complex": "cpp",
         "bitset": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "source_location": "cpp"
     },
 }

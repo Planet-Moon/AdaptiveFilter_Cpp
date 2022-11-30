@@ -3,7 +3,7 @@
 
 class WhiteNoise{
 public:
-    WhiteNoise(double mean, double variance);
+    WhiteNoise(double mean, double stddev);
     double generate();
 protected:
 private:
