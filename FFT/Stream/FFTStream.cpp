@@ -96,7 +96,7 @@ public:
     }
 
     Json::Value get_data() override {
-        auto res = _cli->Get(_url);
+        auto res = _cli->Get(_url.c_str());
         Json::Value result = parseString(res->body);
         return result;
     };
@@ -156,15 +156,34 @@ static Json::Value fromVector(std::vector<std::complex<T>> vector){
     return result;
 }
 
+template <typename T>
+static Json::Value fromVector(std::vector<T> vector){
+    Json::Value result;
+    for(int i = 0; i < vector.size(); i++){
+        result[i] = std::to_string(vector[i]);
+    }
+    return result;
+}
+
+float calc_sample_time(const std::vector<DataPoint>& dp){
+    float _sample_time = 0.0;
+    for(int i = 1; i < dp.size(); i++){
+        _sample_time += ((dp[i].time - dp[i-1].time) - _sample_time)/i;
+    }
+    return _sample_time;
+}
+
 int main(int argc, char **argv){
     auto dataSource = std::make_unique<HTTP_DataSource>("http://127.0.0.1:8800","/data");
     std::vector<DataPoint> dataPoints;
 
     std::shared_ptr<httplib::Server> svr = std::make_shared<httplib::Server>();
     auto fft_result = std::make_shared<std::vector<std::complex<double>>>();
-    svr->Get("/data", [&fft_result](const httplib::Request &, httplib::Response &res){
+    auto fft_freq_result = std::make_shared<std::vector<double>>();
+    svr->Get("/data", [&fft_result, &fft_freq_result](const httplib::Request &, httplib::Response &res){
         Json::Value json;
         json["fft"] = fromVector(*fft_result);
+        json["freq"] = fromVector(*fft_freq_result);
         std::string content = convert_to_string(json);
         res.set_content(content, "application/json");
     });
@@ -176,7 +195,13 @@ int main(int argc, char **argv){
 
         if(dataPoints.size() > 100){
             std::vector<DataPoint> fft_vec(dataPoints.end() - 100, dataPoints.end());
+            float sample_time = calc_sample_time(fft_vec);
+            float sample_freq = 1/sample_time;
             *fft_result = FFT::fft(DataPoint::toVec<double>(fft_vec));
+            fft_freq_result->clear();
+            for(int i = 0; i < fft_result->size(); ++i){
+                fft_freq_result->push_back(i*sample_freq/fft_result->size());
+            }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

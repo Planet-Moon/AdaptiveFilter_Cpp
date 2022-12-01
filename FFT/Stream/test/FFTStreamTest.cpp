@@ -100,15 +100,17 @@ int data_generator(){
     });
 
 
+    float time_step_size = 0.001; // seconds
+
     SinusGenerator sinusGenerator;
     sinusGenerator.setAmplitude(1);
-    sinusGenerator.setFrequency(0.5);
-    float min_freq = 0.1;
-    float max_freq = 10;
-    float freq_speed = 1.2;
+    sinusGenerator.setFrequency(5);
+    sinusGenerator.setSampleTime(time_step_size);
+    const float min_freq = 1;
+    const float max_freq = 0.5/time_step_size;
+    const float freq_speed = (max_freq-min_freq)/100;
     float next_freq = sinusGenerator.getFrequency() + freq_speed;
     bool direction = true;
-    sinusGenerator.setSampleTime(0.01);
 
     WhiteNoise noise(0.f, 0.01f);
 
@@ -138,14 +140,23 @@ int data_generator(){
             else if(next_freq > max_freq){
                 next_freq = max_freq;
             }
-            sinusGenerator.setFrequency(next_freq);
+
+            if(counter%1000 == 0){
+                sinusGenerator.setFrequency(next_freq);
+            }
 
             float next_value = sinusGenerator.next()+noise.generate();
             value->push_back(next_value);
             time->push_back(sinusGenerator.getTime());
-            std::cout << "{\"time\":" << time->back() << ",\"value\": " << value->back() << "}" << std::endl;
+            if(counter%100 == 0){
+                std::cout << "{\"time\":" << time->back() << ",\"value\": " << value->back() << ", \"frequency\":" << freq << "}" << std::endl;
+            }
+            ++counter;
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(time_step_size*1000)));
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        else{
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
     }
     svr->stop();
     server_thread.join();

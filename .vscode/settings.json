@@ -1,10 +1,8 @@
 {
-    "qttools.visualizerFile": "C:\\Users\\Schroeder\\AppData\\Roaming\\Code\\User\\workspaceStorage\\c133bf07a4c1e0156374260b9df0b0d4\\tonka3000.qtvsctools",
     "cmake.generator": "Ninja", // Ninja
     "cmake.configureOnEdit": false,
     "cmake.environment": {
-        "CMAKE_TOOLCHAIN_FILE":"D:/buildtools/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "Qt5_DIR":"D:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5",
+        "CMAKE_TOOLCHAIN_FILE": "E:/vcpkg/scripts/buildsystems/vcpkg.cmake",
     },
     "files.associations": {
         "*.ttconfig": "json",
@@ -91,6 +89,8 @@
         "complex": "cpp",
         "bitset": "cpp",
         "valarray": "cpp",
-        "source_location": "cpp"
+        "source_location": "cpp",
+        "shared_mutex": "cpp",
+        "unordered_set": "cpp"
     },
 }
