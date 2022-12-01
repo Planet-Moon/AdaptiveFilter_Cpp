@@ -29,8 +29,8 @@ def main():
         if fft_data:
             ax1.clear()
             ax1.plot(
-                fft_freq_data[:int(0.5*len(fft_freq_data))],
-                [abs(x) for x in fft_data[:int(0.5*len(fft_data))]])
+                fft_freq_data,
+                [20*np.log10(abs(x)) for x in fft_data])
     ani = animation.FuncAnimation(fig, animate, interval=1000)
     plt.show()
 

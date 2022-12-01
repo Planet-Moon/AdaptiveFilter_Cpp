@@ -31,6 +31,35 @@ std::string convert_to_string(const Json::Value& json){
     return Json::FastWriter().write(json);
 }
 
+template<typename Tr, typename T>
+std::vector<Tr> linspace(T start_in, T end_in, int num_in)
+{
+    // https://stackoverflow.com/a/27030598
+    std::vector<Tr> linspaced(num_in);
+
+    Tr start = static_cast<Tr>(start_in);
+    Tr end = static_cast<Tr>(end_in);
+    Tr num = static_cast<Tr>(num_in);
+
+
+    if (num == 0) { return linspaced; }
+    if (num == 1)
+    {
+        linspaced[0] = start;
+        return linspaced;
+    }
+
+    Tr delta = (end - start) / (num - 1);
+
+    for(int i=0; i < num-1; ++i){
+        linspaced[i] = (start + delta * i);
+    }
+    linspaced.back() = (end); // I want to ensure that start and end
+                              // are exactly the same as the input
+    return linspaced;
+}
+
+
 class DataSource{
 public:
     DataSource(){
@@ -107,6 +136,7 @@ private:
 };
 
 struct DataPoint{
+    DataPoint():time(0.f),value(0.f){};
     DataPoint(const float& t, const float& v): time(t), value(v) {};
     float time;
     float value;
@@ -174,9 +204,13 @@ float calc_sample_time(const std::vector<DataPoint>& dp){
 }
 
 int main(int argc, char **argv){
+    // Data storage
     auto dataSource = std::make_unique<HTTP_DataSource>("http://127.0.0.1:8800","/data");
-    std::vector<DataPoint> dataPoints;
+    const size_t dataPoints_maxSize = 1000;
+    std::array<DataPoint, dataPoints_maxSize> dataPoints;
+    size_t dataPoint_size = 0;
 
+    // Server for python gui
     std::shared_ptr<httplib::Server> svr = std::make_shared<httplib::Server>();
     auto fft_result = std::make_shared<std::vector<std::complex<double>>>();
     auto fft_freq_result = std::make_shared<std::vector<double>>();
@@ -188,19 +222,58 @@ int main(int argc, char **argv){
         res.set_content(content, "application/json");
     });
     std::thread server_thread(server_thread_func, svr, "0.0.0.0", 8801);
-    while(true){
-        auto res = dataSource->get_data();
-        auto new_points = DataPoint::fromJson(res);
-        dataPoints.insert(dataPoints.end(), new_points.begin(), new_points.end());
 
-        if(dataPoints.size() > 100){
-            std::vector<DataPoint> fft_vec(dataPoints.end() - 100, dataPoints.end());
-            float sample_time = calc_sample_time(fft_vec);
-            float sample_freq = 1/sample_time;
+    while(true){
+        {   // Get new data
+            Json::Value res = dataSource->get_data();
+            std::vector<DataPoint> new_points = DataPoint::fromJson(res);
+            size_t remaining = dataPoints_maxSize - dataPoint_size;
+            size_t to_copy = std::min(new_points.size(), remaining);
+            std::copy_n(new_points.end()-to_copy, to_copy, dataPoints.begin()+dataPoint_size);
+            dataPoint_size += new_points.size();
+        }
+
+        if(dataPoint_size > dataPoints_maxSize){
+            std::vector<DataPoint> fft_vec(dataPoints.begin(), dataPoints.end());
+            { // reset data points
+                dataPoints.fill(DataPoint());
+                dataPoint_size = 0;
+            }
+
             *fft_result = FFT::fft(DataPoint::toVec<double>(fft_vec));
-            fft_freq_result->clear();
-            for(int i = 0; i < fft_result->size(); ++i){
-                fft_freq_result->push_back(i*sample_freq/fft_result->size());
+
+            { // Calculate vector of frequencies
+                float sample_time = calc_sample_time(fft_vec);
+                float sample_freq = 1/sample_time;
+                fft_freq_result->clear();
+                *fft_freq_result = linspace<double>(0.f, sample_freq, fft_result->size());
+            }
+
+            { // find dominant frequency
+                struct{
+                    int idx=0;
+                    double mag=0;
+                    double freq=0;
+                } dominant_freq_Hz_idx;
+
+                // calculate magnitudes of fft points
+                std::vector<double> fft_result_abs(fft_result->size());
+                std::transform(fft_result->begin(), fft_result->end(), fft_result_abs.begin(),
+                    [](const std::complex<double>& val){
+                        return  std::abs(val);
+                });
+
+                // find largest magnitude
+                for(int i = 0; i < fft_result_abs.size()*0.5; ++i){
+                    if(fft_result_abs[i] > dominant_freq_Hz_idx.mag){
+                        dominant_freq_Hz_idx.mag = fft_result_abs[i];
+                        dominant_freq_Hz_idx.idx = i;
+                    }
+                }
+
+                // get frequency of the index with the largest magnitude
+                dominant_freq_Hz_idx.freq = (*fft_freq_result)[dominant_freq_Hz_idx.idx];
+                std::cout << " dominant frequency: " << dominant_freq_Hz_idx.freq << " Hz" << std::endl;
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
