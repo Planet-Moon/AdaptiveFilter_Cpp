@@ -91,6 +91,18 @@ target_include_directories(fft_stream_test PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream_test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 target_link_libraries(fft_stream_test PRIVATE noise)
 
+add_executable(fft_stream_combined
+    FFT/Stream/DataPoint.h
+    FFT/Stream/DataPoint.cpp
+    FFT/Stream/test/SinusGenerator.h
+    FFT/Stream/test/SinusGenerator.cpp
+    FFT/Stream/test/FFTStreamCombined.cpp
+)
+target_include_directories(fft_stream_combined PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/FFT/Stream)
+target_include_directories(fft_stream_combined PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
+target_link_libraries(fft_stream_combined PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+target_link_libraries(fft_stream_combined PRIVATE fft noise)
+
 add_library(noise STATIC
     Noise/WhiteNoise.h
     Noise/WhiteNoise.cpp
