@@ -66,13 +66,25 @@ target_link_libraries(fft PUBLIC FftComplex)
 target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 
 add_executable(fft_stream
+    FFT/Stream/DataSource.h
+    FFT/Stream/DataSource.cpp
+    FFT/Stream/CLI_DataSource.h
+    FFT/Stream/CLI_DataSource.cpp
+    FFT/Stream/HTTP_DataSource.h
+    FFT/Stream/HTTP_DataSource.cpp
+    FFT/Stream/DataPoint.h
+    FFT/Stream/DataPoint.cpp
+    FFT/Stream/FFTStream.h
     FFT/Stream/FFTStream.cpp
+    FFT/Stream/FFTStreamRun.cpp
 )
 target_include_directories(fft_stream PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream PRIVATE fft)
 target_link_libraries(fft_stream PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 
 add_executable(fft_stream_test
+    FFT/Stream/test/SinusGenerator.h
+    FFT/Stream/test/SinusGenerator.cpp
     FFT/Stream/test/FFTStreamTest.cpp
 )
 target_include_directories(fft_stream_test PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})

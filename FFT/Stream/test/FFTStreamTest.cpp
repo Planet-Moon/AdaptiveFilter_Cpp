@@ -5,9 +5,8 @@
 #include <thread>
 #include <httplib.h>
 #include <WhiteNoise.h>
+#include "SinusGenerator.h"
 
-
-const float M_PI = acos(-1);
 
 bool running = true;
 
@@ -20,50 +19,6 @@ void signalHandler(int signum) {
             break;
     }
 }
-class SinusGenerator{
-public:
-    SinusGenerator(){}
-
-    float getFrequency() const { return _freq; }
-    void setFrequency(float frequency) {
-        _next_freq = frequency;
-    }
-
-    float getAmplitude() const { return _amp; }
-    void setAmplitude(float amplitude) { _amp = amplitude; }
-
-    float getSampleTime() const { return _sample_time; }
-    void setSampleTime(float sample_time) { _sample_time = sample_time; }
-
-    float getTime() const { return _continuos_time; }
-
-    float next(){
-        float res = _amp * sin(2 * M_PI * _freq * _timestep);
-        _timestep += _sample_time;
-        if(_timestep > 1/_freq){
-            if(_next_freq > 0){
-                _freq = _next_freq;
-                _timestep = 0;
-                _next_freq = -1;
-            }
-            else{
-                int ratio = _timestep/_sample_time;
-                _timestep = _sample_time*(_timestep/_sample_time - ratio);
-            }
-        }
-        _continuos_time += _sample_time;
-        return res;
-    }
-
-private:
-    float _freq=1;
-    float _next_freq=-1;
-    float _amp=1;
-
-    float _timestep=0;
-    float _sample_time=100;
-    float _continuos_time=0;
-};
 
 std::string convert_to_string(const Json::Value& json){
     return Json::FastWriter().write(json);
@@ -142,10 +97,10 @@ int data_generator(){
             }
 
             if(counter%1000 == 0){
-                sinusGenerator.setFrequency(next_freq);
+                sinusGenerator.setFrequency(250);//next_freq); // !DEBUG
             }
 
-            float next_value = sinusGenerator.next()+noise.generate();
+            float next_value = sinusGenerator.next();//+noise.generate();
             value->push_back(next_value);
             time->push_back(sinusGenerator.getTime());
             if(counter%100 == 0){

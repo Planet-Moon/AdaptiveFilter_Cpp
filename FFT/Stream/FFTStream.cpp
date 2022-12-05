@@ -1,31 +1,6 @@
-#include <csignal>
-#include <string>
-#include <iostream>
-#include <thread>
-#include <json/json.h>
-#include <httplib.h>
 #include <FFT.h>
-
-bool running = true;
-
-void signalHandler(int signum) {
-    switch (signum) {
-        case SIGINT:
-            running = false;
-            break;
-        default:
-            break;
-    }
-}
-
-Json::Value parseString(const std::string& str_, const Json::CharReaderBuilder& _builder){
-    Json::Value result;
-    Json::String errs;
-    std::stringstream ss;
-    ss.str(str_);
-    bool ok = Json::parseFromStream(_builder, ss, &result, &errs);
-    return result;
-}
+#include "FFTStream.h"
+#include "HTTP_DataSource.h"
 
 std::string convert_to_string(const Json::Value& json){
     return Json::FastWriter().write(json);
@@ -58,112 +33,6 @@ std::vector<Tr> linspace(T start_in, T end_in, int num_in)
                               // are exactly the same as the input
     return linspaced;
 }
-
-
-class DataSource{
-public:
-    DataSource(){
-        _builder["collectComments"] = false;
-    };
-    virtual ~DataSource() = default;
-
-    virtual Json::Value get_data() = 0;
-
-protected:
-    Json::CharReaderBuilder _builder;
-
-    Json::Value parseString(const std::string& str_){
-        return ::parseString(str_, _builder);
-    }
-
-private:
-};
-
-class CLI_DataSource : public DataSource {
-public:
-    CLI_DataSource():
-        DataSource()
-    {
-        _cli_thread = std::thread(&CLI_DataSource::collect_cli_lines, this);
-    }
-
-    virtual ~CLI_DataSource(){
-        _run_cli = false;
-        _cli_thread.join();
-    };
-
-    Json::Value get_data() override {
-        Json::Value result = parseString(*_cli_lines.begin());
-        _cli_lines.erase(_cli_lines.begin());
-        return result;
-    };
-
-    void collect_cli_lines(){
-        std::string line;
-        while (_run_cli && std::getline(std::cin, line)) {
-            _cli_lines.push_back(line);
-        }
-    }
-
-private:
-    std::thread _cli_thread;
-    bool _run_cli = true;
-    std::vector<std::string> _cli_lines;
-};
-
-class HTTP_DataSource : public DataSource {
-public:
-    HTTP_DataSource(const std::string& host, const std::string& url):
-        DataSource()
-    {
-        _cli = std::make_unique<httplib::Client>(host);
-        _url = url;
-    }
-
-    virtual ~HTTP_DataSource(){
-
-    }
-
-    Json::Value get_data() override {
-        auto res = _cli->Get(_url.c_str());
-        Json::Value result = parseString(res->body);
-        return result;
-    };
-
-private:
-    std::unique_ptr<httplib::Client> _cli;
-    std::string _url;
-};
-
-struct DataPoint{
-    DataPoint():time(0.f),value(0.f){};
-    DataPoint(const float& t, const float& v): time(t), value(v) {};
-    float time;
-    float value;
-
-    static std::vector<DataPoint> fromJson(const Json::Value& jv){
-        const Json::Value& _time = jv["time"];
-        const Json::Value& _value = jv["value"];
-        Json::ArrayIndex size = _time.size();
-        std::vector<DataPoint> result;
-        for(int i = 0; i < size; ++i){
-            DataPoint p(_time[i].asFloat(), _value[i].asFloat());
-            result.push_back(p);
-        }
-        // time = jv.get("time",0).asFloat();
-        // value = jv.get("value",0).asFloat();
-        return result;
-    }
-
-    template<typename T>
-    static std::vector<T> toVec(const std::vector<DataPoint>& v){
-        std::vector<T> result;
-        for(const auto& i : v){
-            result.push_back(static_cast<T>(i.value));
-        }
-        return result;
-    }
-};
 
 void server_thread_func(std::shared_ptr<httplib::Server> server, const char* address, int port){
     server->listen(address, port);
@@ -203,18 +72,15 @@ float calc_sample_time(const std::vector<DataPoint>& dp){
     return _sample_time;
 }
 
-int main(int argc, char **argv){
+FFTStream::FFTStream(){
     // Data storage
-    auto dataSource = std::make_unique<HTTP_DataSource>("http://127.0.0.1:8800","/data");
-    const size_t dataPoints_maxSize = 1000;
-    std::array<DataPoint, dataPoints_maxSize> dataPoints;
-    size_t dataPoint_size = 0;
+    dataSource = std::make_unique<HTTP_DataSource>("http://127.0.0.1:8800","/data");
+    dataPoints = std::vector<DataPoint>(dataPoints_maxSize);
 
-    // Server for python gui
-    std::shared_ptr<httplib::Server> svr = std::make_shared<httplib::Server>();
-    auto fft_result = std::make_shared<std::vector<std::complex<double>>>();
-    auto fft_freq_result = std::make_shared<std::vector<double>>();
-    svr->Get("/data", [&fft_result, &fft_freq_result](const httplib::Request &, httplib::Response &res){
+    svr = std::make_shared<httplib::Server>();
+    fft_result = std::make_shared<std::vector<std::complex<double>>>();
+    fft_freq_result = std::make_shared<std::vector<double>>();
+    svr->Get("/data", [this](const httplib::Request &, httplib::Response &res){
         Json::Value json;
         json["fft"] = fromVector(*fft_result);
         json["freq"] = fromVector(*fft_freq_result);
@@ -222,9 +88,11 @@ int main(int argc, char **argv){
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(content, "application/json");
     });
-    std::thread server_thread(server_thread_func, svr, "0.0.0.0", 8801);
+    server_thread = std::make_unique<std::thread>(server_thread_func, svr, "0.0.0.0", 8801);
+}
 
-    while(true){
+void FFTStream::run(){
+    while(_run){
         {   // Get new data
             Json::Value res = dataSource->get_data();
             std::vector<DataPoint> new_points = DataPoint::fromJson(res);
@@ -237,15 +105,19 @@ int main(int argc, char **argv){
         if(dataPoint_size > dataPoints_maxSize){
             std::vector<DataPoint> fft_vec(dataPoints.begin(), dataPoints.end());
             { // reset data points
-                dataPoints.fill(DataPoint());
+                dataPoints = std::vector<DataPoint>(dataPoints_maxSize, DataPoint());
                 dataPoint_size = 0;
             }
 
+            // Calculate fast fourier transform
             *fft_result = FFT::fft(DataPoint::toVec<double>(fft_vec));
 
             { // Calculate vector of frequencies
-                float sample_time = calc_sample_time(fft_vec);
+                float chunk_sample_time = calc_sample_time(fft_vec);
+                sample_time = sample_time + (chunk_sample_time - sample_time)/samples_chunks_got;
+                ++samples_chunks_got;
                 float sample_freq = 1/sample_time;
+                sample_freq = 1000; //! DEBUG
                 fft_freq_result->clear();
                 *fft_freq_result = linspace<double>(0.f, sample_freq, fft_result->size());
             }
@@ -279,5 +151,8 @@ int main(int argc, char **argv){
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    return 0;
+}
+
+void FFTStream::stop() {
+    _run = false;
 }
