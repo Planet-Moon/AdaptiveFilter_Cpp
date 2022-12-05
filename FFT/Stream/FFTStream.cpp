@@ -219,6 +219,7 @@ int main(int argc, char **argv){
         json["fft"] = fromVector(*fft_result);
         json["freq"] = fromVector(*fft_freq_result);
         std::string content = convert_to_string(json);
+        res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(content, "application/json");
     });
     std::thread server_thread(server_thread_func, svr, "0.0.0.0", 8801);
