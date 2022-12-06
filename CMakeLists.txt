@@ -96,6 +96,8 @@ add_executable(fft_stream_combined
     FFT/Stream/DataPoint.cpp
     FFT/Stream/test/SinusGenerator.h
     FFT/Stream/test/SinusGenerator.cpp
+    FFT/Stream/test/RectGenerator.h
+    FFT/Stream/test/RectGenerator.cpp
     FFT/Stream/test/FFTStreamCombined.cpp
 )
 target_include_directories(fft_stream_combined PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/FFT/Stream)

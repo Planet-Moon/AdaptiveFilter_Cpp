@@ -10,12 +10,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 </head>
 <body>
-    <div class="container mx-1">
+    <div class="container-fluid">
         <h1>Plot FFT Stream</h1>
         <p>Maximum frequency: <span id="max_freq"></span> Hz</p>
+        <div class="row">
+            <div class="col-6">
+                <span id="chartLog_graph_coords">Coordinates</span>
+                <div class="card p-3">
+                    <canvas id="chartLog"></canvas>
+                </div>
+            </div>
 
-        <div class="card p-3">
-            <canvas id="myChart"></canvas>
+            <div class="col-6">
+                <span id="chart_graph_coords">Coordinates</span>
+                <div class="card p-3">
+                    <canvas id="chart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 

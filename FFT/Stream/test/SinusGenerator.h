@@ -16,7 +16,7 @@ public:
 
     float getTime() const;
 
-    float next();
+    virtual float next();
 
 private:
     float _freq=1;
