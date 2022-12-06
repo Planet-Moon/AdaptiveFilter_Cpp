@@ -160,6 +160,7 @@ $(()=>{
             success: (data, textStatus, jqXHR)=>{
                 plotData(data);
                 plotDataLog(data);
+                $("#sinFreq").html(data.sinFreq.toFixed(2));
             }
         });
     }

@@ -143,10 +143,12 @@ int main(int argc, const char** argv) {
     const std::vector<double> fft_freq = linspace<double>(0.0, sample_frequency_Hz, dataPointsSize);
 
     httplib::Server svr;
-    svr.Get("/data", [&fft_complex, &fft_freq](const httplib::Request &, httplib::Response &res){
+    float sinus_frequency = 0;
+    svr.Get("/data", [&fft_complex, &fft_freq, &sinus_frequency](const httplib::Request &, httplib::Response &res){
         Json::Value json;
         json["fft"] = fromVector(fft_complex, fft_complex.size()/2 -1);
         json["freq"] = fromVector(fft_freq, fft_complex.size()/2 -1);
+        json["sinFreq"] = sinus_frequency;
         std::string content = convert_to_string(json);
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(content, "application/json");
@@ -189,6 +191,7 @@ int main(int argc, const char** argv) {
         dataPoints_sampled++;
 
         if(dataPoints_sampled == dataPointsSize){
+            sinus_frequency = generator.getFrequency();
             dataPoints.push(data);
             data = std::vector<DataPoint>(dataPointsSize);
             dataPoints_sampled = 0;
