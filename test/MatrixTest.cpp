@@ -6,6 +6,57 @@ TEST(Matrix, Build){
     EXPECT_EQ(2, 1+1);
 }
 
+TEST(Vector, Transpose){
+    Vec v = {1,2,3};
+    auto dim_v = dimension(v);
+    Mat m = transpose(v);
+    auto dim_m = dimension(m);
+    Mat expected = {{1},{2},{3}};
+    EXPECT_EQ(expected, m);
+}
+
+TEST(Vector, ToMatrixTranspose){
+    Vec v = {1,2,3};
+    Mat m = convertToMat(v);
+    auto dim_m = dimension(m);
+    Mat m_t = Matrix::transpose(m);
+    auto dim_m_t = dimension(m_t);
+    Mat expected = {{1},{2},{3}};
+    EXPECT_EQ(expected, m_t);
+}
+
+TEST(Vector, times){
+    Vec v1 = {1,2,3};
+    Vec v2 = {4,5,6};
+    Vec v3 = times(v1, v2);
+    Vec expected = {4,10,18};
+    EXPECT_EQ(v3, expected);
+}
+
+TEST(Vector, rdivide){
+    Vec v1 = {12,32,36};
+    Vec v2 = {6,8,12};
+    Vec v3 = rdivide(v1, v2);
+    Vec expected = {2,4,3};
+    EXPECT_EQ(v3, expected);
+}
+
+TEST(Vector, ldivide){
+    Vec v1 = {6,8,12};
+    Vec v2 = {12,32,36};
+    Vec v3 = rdivide(v1, v2);
+    Vec expected = {2,4,3};
+    EXPECT_EQ(v3, expected);
+}
+
+TEST(Vector, power){
+    Vec v1 = {12,32,36};
+    Vec v2 = {0,1,2};
+    Vec v3 = power(v1, v2);
+    Vec expected = {1, 2, std::pow(36, 2)};
+    EXPECT_EQ(v3, expected);
+}
+
 TEST(Matrix, MatVec){
     Mat a = {{0,1,2},{3,4,5}};
     Vec v = {2,2,2};
@@ -42,6 +93,22 @@ TEST(Matrix, ScalarMat){
         Mat expected = {{0,2,4},{6,8,10}};
         EXPECT_EQ(r, expected);
     }
+}
+
+TEST(Matrix, Matrix_add_Vec){
+    Mat a = {{0,1,2},{3,4,5}};
+    Vec b = {1,2,3};
+    Mat c = a + b;
+    Mat expected = {{1,3,5},{4,6,8}};
+    EXPECT_EQ(c, expected);
+}
+
+TEST(Matrix, Matrix_sub_Vec){
+    Mat a = {{0,1,2},{3,4,5}};
+    Vec b = {1,2,3};
+    Mat c = a - b;
+    Mat expected = {{-1,-1,-1},{2,2,2}};
+    EXPECT_EQ(c, expected);
 }
 
 TEST(Matrix, Identity) {

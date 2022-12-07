@@ -7,6 +7,9 @@ using Vec = std::vector<double>;
 using Mat = std::vector<Vec>;
 using Mat3 = std::vector<Mat>;
 
+std::vector<size_t> dimension(const Vec& v);
+std::vector<size_t> dimension(const Mat& m);
+
 Vec operator*(const Mat &a, const Vec &x);
 Mat operator*(const Mat &a, const Mat &b);
 
@@ -24,6 +27,12 @@ Vec operator*(const Vec &v, const T &scalar){
     return scalar * v;
 }
 
+Vec times(const Vec& v1, const Vec& v2);
+Vec rdivide(const Vec& v1, const Vec& v2);
+Vec ldivide(const Vec& v1, const Vec& v2);
+Vec power(const Vec& v1, const Vec& v2);
+Mat transpose(const Vec& v1);
+
 Vec operator+(const Vec &v1, const Vec &v2);
 Vec operator-(const Vec &v1, const Vec &v2);
 
@@ -40,6 +49,9 @@ template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::v
 Vec operator+(const T &scalar, const Vec &v){
     return v+scalar;
 }
+
+Mat convertToMat(const Vec& v);
+Vec convertToVec(const Mat& m);
 
 template<typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
 Mat operator*(const T &scalar, const Mat &a){
@@ -59,6 +71,9 @@ Mat operator*(const Mat &a, const T &scalar){
 
 Mat operator+(const Mat &m1, const Mat &m2);
 Mat operator-(const Mat &m1, const Mat &m2);
+
+Mat operator+(const Mat &m, const Vec& v);
+Mat operator-(const Mat &m, const Vec& v);
 
 namespace Matrix{
     Mat identity(int dim);

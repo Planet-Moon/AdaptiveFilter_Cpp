@@ -2,62 +2,118 @@
 #include <cassert>
 #include <iostream>
 
+std::vector<size_t> dimension(const Vec& v){
+    return {1, v.size()};
+}
+
+std::vector<size_t> dimension(const Mat& m){
+    for(int i=0; i<m.size(); i++){
+        assert(m[i].size() == m[0].size());
+    }
+    return {m.size(), m[0].size()};
+}
+
 Vec operator*(const Mat &a, const Vec &x)
 {
-    int i,j;
-    const int m = a.size();
-    const int n = x.size();
+    int row,col;
+    const int rows = a.size();
+    const int cols = x.size();
     assert(a[0].size() == x.size());
 
-    Vec prod(m);
+    Vec prod(rows);
 
     #pragma omp parallel for
-    for(i = 0; i < m; i++){
+    for(row = 0; row < rows; row++){
         double temp = 0.;
         #pragma omp parallel for
-        for(j = 0; j < n; j++){
-            temp += a[i][j]*x[j];
+        for(col = 0; col < cols; col++){
+            temp += a[row][col]*x[col];
         }
-        prod[i] = temp;
+        prod[row] = temp;
     }
     return prod;
 }
 
 Mat operator*(const Mat &a, const Mat &b)
 {
-    const int n = a.size();
-    const int m_a = a[0].size();
-    const int m_b = b.size();
-    const int j = b[0].size();
-    assert(m_a == m_b);
-    const int m = m_a;
+    const int a_rows = a.size();
+    const int a_cols = a[0].size();
+    const int b_rows = b.size();
+    const int b_cols = b[0].size();
+    assert(a_cols == b_rows);
 
-    Vec col(j);
-    Mat prod(n, col);
+    Vec v_result(b_cols);
+    Mat result(a_rows, v_result);
     #pragma omp parallel for
-    for(int n_i = 0; n_i < n; ++n_i){ // Row
+    for(int a_row = 0; a_row < a_rows; ++a_row){ // Row
         #pragma omp parallel for
-        for(int j_i = 0; j_i < j; ++j_i){ // Column
+        for(int b_col = 0; b_col < b_cols; ++b_col){ // Column
             #pragma omp parallel for
-            for(int k = 0; k < m; ++k){
-                const double toAdd = a[n_i][k] * b[k][j_i];
-                prod[n_i][j_i] += toAdd;
+            for(int k = 0; k < a_cols; ++k){
+                result[a_row][b_col] += a[a_row][k] * b[k][b_col];
             }
         }
     }
-    return prod;
+    return result;
+}
+
+Vec times(const Vec& v1, const Vec& v2){
+    assert(v1.size() == v2.size());
+    Vec result(v1.size());
+    #pragma omp parallel for
+    for(int i = 0; i < v1.size(); i++){
+        result[i] = v1[i] * v2[i];
+    }
+    return result;
+}
+
+Vec rdivide(const Vec& v1, const Vec& v2){
+    assert(v1.size() == v2.size());
+    Vec result(v1.size());
+    #pragma omp parallel for
+    for(int i = 0; i < v1.size(); i++){
+        result[i] = v1[i] / v2[i];
+    }
+    return result;
+}
+
+Vec ldivide(const Vec& v1, const Vec& v2){
+    return rdivide(v2, v1);
+}
+
+Vec power(const Vec& v1, const Vec& v2){
+    assert(v1.size() == v2.size());
+    Vec result(v1.size());
+    #pragma omp parallel for
+    for(int i = 0; i < v1.size(); i++){
+        result[i] = std::pow(v1[i], v2[i]);
+    }
+    return result;
+}
+
+Mat transpose(const Vec& v){
+    Vec v_result(1);
+    Mat result(v.size(), v_result);
+    for(int col = 0; col < v.size(); col++){
+        result[col][0] = v[col];
+    }
+    return result;
 }
 
 Mat operator+(const Mat &m1, const Mat &m2)
 {
-    assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
-    Vec v(m1[0].size());
-    Mat result(m1.size(), v);
+    const size_t m1_rows = m1.size();
+    const size_t m1_cols = m1[0].size();
+    const size_t m2_rows = m2.size();
+    const size_t m2_cols = m2[0].size();
+    assert(m1_rows == m2_rows && m1_cols == m2_cols);
+    Vec v(m1_cols);
+    Mat result(m1_rows, v);
     #pragma omp parallel for
-    for(int i = 0; i < m1.size(); ++i){
+    for(int row = 0; row < m1_rows; ++row){
         #pragma omp parallel for
-        for(int j = 0; j < m1[i].size(); ++j){
-            result[i][j] = m1[i][j] + m2[i][j];
+        for(int col = 0; col < m1_cols; ++col){
+            result[row][col] = m1[row][col] + m2[row][col];
         }
     }
     return result;
@@ -65,17 +121,41 @@ Mat operator+(const Mat &m1, const Mat &m2)
 
 Mat operator-(const Mat &m1, const Mat &m2)
 {
-    assert(m1.size() == m2.size() && m1[0].size() == m2[0].size());
-    Vec v(m1[0].size());
-    Mat result(m1.size(), v);
+    const size_t m1_rows = m1.size();
+    const size_t m1_cols = m1[0].size();
+    const size_t m2_rows = m2.size();
+    const size_t m2_cols = m2[0].size();
+    Vec v(m1_cols);
+    Mat result(m1_rows, v);
     #pragma omp parallel for
-    for(int i = 0; i < m1.size(); ++i){
+    for(int row = 0; row < m1_rows; ++row){
         #pragma omp parallel for
-        for(int j = 0; j < m1[i].size(); ++j){
-            result[i][j] = m1[i][j] - m2[i][j];
+        for(int col = 0; col < m1_cols; ++col){
+            result[row][col] = m1[row][col] - m2[row][col];
         }
     }
     return result;
+}
+
+Mat operator+(const Mat &m, const Vec& v)
+{
+    const size_t m_rows = m.size();
+    const size_t m_cols = m[0].size();
+    assert(m_cols == v.size());
+    Vec v_result(m_cols);
+    Mat result(m_rows, v_result);
+    #pragma omp parallel for
+    for(int row = 0; row < m_rows; ++row){
+        #pragma omp parallel for
+        for(int col = 0; col < m_cols; ++col){
+            result[row][col] = m[row][col] + v[col];
+        }
+    }
+    return result;
+}
+
+Mat operator-(const Mat &m, const Vec& v){
+    return m + (v * -1);
 }
 
 Vec operator+(const Vec &v1, const Vec &v2)
@@ -98,6 +178,15 @@ Vec operator-(const Vec &v1, const Vec &v2)
         result[i] = v1[i] - v2[i];
     }
     return result;
+}
+
+Mat convertToMat(const Vec& v){
+    return Mat(1, v);
+}
+
+Vec convertToVec(const Mat& m){
+    assert(m.size() == 1);
+    return m[0];
 }
 
 namespace Matrix{
@@ -138,13 +227,15 @@ namespace Matrix{
     }
 
     Mat transpose(const Mat& m){
-        Vec v(m.size());
-        Mat result(m[0].size(), v);
+        const size_t m_rows = m.size();
+        const size_t m_cols = m[0].size();
+        Vec v(m_rows);
+        Mat result(m_cols, v);
 
         #pragma omp parallel for
-        for(int i = 0; i < m.size(); i++){
+        for(int i = 0; i < m_rows; i++){
             #pragma omp parallel for
-            for(int j = 0; j < m[0].size(); j++){
+            for(int j = 0; j < m_cols; j++){
                 result[j][i] = m[i][j];
             }
         }
