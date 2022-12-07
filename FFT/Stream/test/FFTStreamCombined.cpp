@@ -6,6 +6,7 @@
 #include "FFT.h"
 #include "DataPoint.h"
 #include <httplib.h>
+#include <iostream>
 
 static void server_thread_func(httplib::Server* server, const char* address, int port){
     server->listen(address, port);
@@ -96,12 +97,37 @@ std::vector<Tr> linspace(T start_in, T end_in, int num_in)
 }
 
 
+int find_dominant_freq(const std::vector<std::complex<double>>& fft){
+    // calculate magnitudes of fft points
+    std::vector<double> fft_mag(fft.size());
+    std::transform(fft.begin(), fft.end(), fft_mag.begin(),
+        [](const std::complex<double>& val){
+            return  std::abs(val);
+    });
+
+    // find largest magnitude
+    int idx = 0;
+    float mag_max = 0;
+    for(int i = 0; i < fft_mag.size()*0.5; ++i){
+        if(fft_mag[i] > mag_max){
+            mag_max = fft_mag[i];
+            idx = i;
+        }
+    }
+
+    return idx;
+}
+
 static void fft_thread_func(std::queue<std::vector<DataPoint>>* input, size_t* datapoints_got, std::vector<std::complex<double>>* output, bool* ready) {
     while(true) {
         if(!input->empty()) {
             auto input_storage = input->front();
             *output = std::vector<std::complex<double>>(input_storage.size());
+            const auto time_start = std::chrono::high_resolution_clock::now();
             auto fft_complex = FFT::fft(DataPoint::toVec<double>(input_storage));
+            const auto time_end = std::chrono::high_resolution_clock::now();
+            auto diff = time_end - time_start;
+            // std::cout << "FFT time: " << diff.count()* 1e-9 << " seconds" << std::endl;
             *output = fft_complex;
             input->pop();
             *ready = true;
@@ -112,8 +138,57 @@ static void fft_thread_func(std::queue<std::vector<DataPoint>>* input, size_t* d
     }
 }
 
+struct FrequencyChanger{
+public:
+    FrequencyChanger(SinusGenerator* generator, const float& min_freq, const float& max_freq, const float& change):
+        _generator(generator), _min_freq(min_freq), _max_freq(max_freq), _freq_speed(change){
+            _next_freq = _generator->getFrequency() + _freq_speed;
+    }
+
+    float calculate_next_freq(){
+        const auto freq = _generator->getFrequency();
+
+        // reverse direction when boundaries are hit
+        if(freq >= _max_freq){
+            _direction = false;
+        }
+        else if(freq <= _min_freq){
+            _direction = true;
+        }
+
+        // check if _next_freq is the current frequency of the generator
+        // change frequency if it has been set by generator
+        if(_next_freq == freq){
+            if(_direction){
+                _next_freq = freq + _freq_speed;
+            }
+            else{
+                _next_freq = freq - _freq_speed;
+            }
+        }
+
+        // check boundaries of next frequency
+        if(_next_freq < _min_freq){
+            _next_freq = _min_freq;
+        }
+        else if(_next_freq > _max_freq){
+            _next_freq = _max_freq;
+        }
+
+        return _next_freq;
+    }
+
+private:
+    SinusGenerator* _generator;
+    float _min_freq;
+    float _max_freq;
+    float _freq_speed;
+    float _next_freq;
+    bool _direction = true;
+};
+
 int main(int argc, const char** argv) {
-    WhiteNoise noiseGenerator(0, 0.5);
+    WhiteNoise noiseGenerator(0, 0.001);
 
     const double sample_time_seconds = 0.001;
     const double sample_frequency_Hz = 1000;
@@ -125,12 +200,11 @@ int main(int argc, const char** argv) {
     const float min_freq = 1;
     const float max_freq = 0.5/sample_time_seconds;
     const float freq_speed = (max_freq-min_freq)/100;
-    float next_freq = generator.getFrequency() + freq_speed;
-    bool direction = true;
+    FrequencyChanger generatorChanger(&generator, min_freq, max_freq, freq_speed);
 
     RectGenerator rectGenerator;
-    rectGenerator.setAmplitude(1);
-    rectGenerator.setFrequency(50);
+    rectGenerator.setAmplitude(0);
+    rectGenerator.setFrequency(10);
     rectGenerator.setSampleTime(sample_time_seconds);
 
     const int dataPointsSize = 1500;
@@ -149,6 +223,7 @@ int main(int argc, const char** argv) {
         json["fft"] = fromVector(fft_complex, fft_complex.size()/2 -1);
         json["freq"] = fromVector(fft_freq, fft_complex.size()/2 -1);
         json["sinFreq"] = sinus_frequency;
+        json["dominantFreq"] = fft_freq[find_dominant_freq(fft_complex)];
         std::string content = convert_to_string(json);
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content(content, "application/json");
@@ -161,32 +236,9 @@ int main(int argc, const char** argv) {
     std::vector<DataPoint> data(dataPointsSize);
     while (true)
     {
-        {
-            const auto freq = generator.getFrequency();
-            if(freq >= max_freq){
-                direction = false;
-            }
-            else if(freq <= min_freq){
-                direction = true;
-            }
+        float next_freq = generatorChanger.calculate_next_freq();
 
-            if(next_freq == freq){
-                if(direction){
-                    next_freq = freq + freq_speed;
-                }
-                else{
-                    next_freq = freq - freq_speed;
-                }
-            }
-            if(next_freq < min_freq){
-                next_freq = min_freq;
-            }
-            else if(next_freq > max_freq){
-                next_freq = max_freq;
-            }
-        }
-
-        float signal = generator.next() + rectGenerator.next() + noiseGenerator.generate();
+        float signal = generator.next();// + rectGenerator.next() + noiseGenerator.generate();
         data[dataPoints_sampled] = DataPoint(time, signal);
         dataPoints_sampled++;
 
@@ -196,6 +248,7 @@ int main(int argc, const char** argv) {
             data = std::vector<DataPoint>(dataPointsSize);
             dataPoints_sampled = 0;
             generator.setFrequency(next_freq);
+            rectGenerator.setFrequency(next_freq);
         }
 
         time += sample_time_seconds;

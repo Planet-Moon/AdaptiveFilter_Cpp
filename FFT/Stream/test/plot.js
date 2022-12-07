@@ -161,6 +161,7 @@ $(()=>{
                 plotData(data);
                 plotDataLog(data);
                 $("#sinFreq").html(data.sinFreq.toFixed(2));
+                $("#dominantFreq").html(data.dominantFreq.toFixed(2));
             }
         });
     }
