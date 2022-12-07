@@ -44,7 +44,7 @@ TEST(Vector, rdivide){
 TEST(Vector, ldivide){
     Vec v1 = {6,8,12};
     Vec v2 = {12,32,36};
-    Vec v3 = rdivide(v1, v2);
+    Vec v3 = ldivide(v1, v2);
     Vec expected = {2,4,3};
     EXPECT_EQ(v3, expected);
 }
@@ -143,4 +143,66 @@ TEST(Matrix, Mean2){
     Mat mean = Matrix::mean(m,2);
     Mat expected = {{1}, {3}, {1}, {1}};
     EXPECT_EQ(mean, expected);
+}
+
+TEST(Matrix, determinant){
+    Mat m = {{0,1,2},{3,2,1},{1,1,0}};
+    double det = Matrix::determinant(m);
+    double expected = 3;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant2){
+    Mat m = {{3,4,2},{2,1,1},{4,6,2}};
+    double det = Matrix::determinant(m);
+    double expected = 4;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant3){
+    Mat m = {{3,4,2,12},{2,1,1,4},{4,6,2,8},{1,3,5,7}};
+    double det = Matrix::determinant(m);
+    double expected = -196;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant4){
+    Mat m = {{3,4,2,12,33},{2,1,1,4,2},{4,6,2,8,6},{1,3,5,7,3},{1,4,7,3,2}};
+    double det = Matrix::determinant(m);
+    double expected = -6062;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant5){
+    Mat m = {{3,4,2,12,33,53,57},{2,1,1,4,2,0,1},{4,6,2,8,6,3,6},{1,3,5,7,3,3,2},{1,4,7,3,2,8,4},{4,6,2,8,6,3,6},{1,3,2,3,6,3,9}};
+    double det = Matrix::determinant(m);
+    double expected = 0;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant6){
+    Mat m = {{3,4,2,12,33,53,57},{2,1,1,4,2,0,1},{4,6,2,8,6,3,6},{1,3,5,7,3,3,2},{1,4,7,3,2,8,4},{4,6,2,5,6,3,6},{1,3,2,3,6,3,9}};
+    double det = Matrix::determinant(m);
+    double expected = 78804;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, determinant7){
+    Mat m = {{1,0,0,0,0,0,0},{0,1,0,0,0,0,0},{0,0,1,0,0,0,0},{0,0,0,1,0,0,0},{0,0,0,0,1,0,0},{0,0,0,0,0,1,0},{0,0,0,0,0,0,1}};
+    double det = Matrix::determinant(m);
+    double expected = 1;
+    EXPECT_EQ(det, expected);
+}
+
+TEST(Matrix, hasFullRank){
+    {
+        Mat m = {{1,1},{2,2}};
+        bool full_rank = Matrix::hasFullRank(m);
+        EXPECT_FALSE(full_rank);
+    }
+    {
+        Mat m = {{1,1},{-2,2}};
+        bool full_rank = Matrix::hasFullRank(m);
+        EXPECT_TRUE(full_rank);
+    }
 }

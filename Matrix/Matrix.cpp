@@ -327,6 +327,43 @@ namespace Matrix{
         }
         return 0;
     }
+
+    std::pair<double, Mat> determinant_Mat(const std::pair<double, Mat>& in){
+        Mat m = in.second;
+        const auto dim = dimension(m);
+        if(dim[0] == dim[1] && dim[0] == 2){
+            return {m[0][0]*m[1][1]-m[0][1]*m[1][0], Matrix::zeros(0)};
+        }
+        double sum = 0.0;
+        for(int row = 0; row < dim[0]; ++row){
+            if(m[row][0] == 0) continue;
+            Mat m_ = ignoreRowCol(m, row, 0);
+            const auto det = determinant_Mat({0, m_});
+            sum += std::pow(-1, row+2) * m[row][0] * det.first;
+        }
+        return {sum, Matrix::zeros(0)};
+    }
+
+    double determinant(const Mat& m){
+        return determinant_Mat({0,m}).first;
+    }
+
+    Mat ignoreRowCol(const Mat& m, int row, int col){
+        const auto dim = dimension(m);
+        assert(dim[0] > 1 && dim[1] > 1);
+        assert(row >= 0 && row < dim[0]);
+        assert(col >= 0 && col < dim[1]);
+        Mat result = m;
+        result.erase(result.begin()+row);
+        for(size_t i = 0; i < result[0].size(); ++i){
+            result[i].erase(result[i].begin()+col);
+        }
+        return result;
+    }
+
+    bool hasFullRank(const Mat& m){
+        return 0 != determinant(m);
+    }
 };
 
 namespace Vector{
