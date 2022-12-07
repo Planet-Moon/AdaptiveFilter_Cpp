@@ -328,6 +328,39 @@ namespace Matrix{
         return 0;
     }
 
+    Mat invert(const Mat& m){
+        Mat tmp = Matrix::square(m);
+        Mat result = Matrix::identity(tmp.size());
+
+        const size_t rows = tmp.size();
+        const size_t cols = tmp[0].size();
+
+
+
+        for(int col = 0; col < cols; ++col){
+            for(int row = 0; row < rows; ++row){
+
+            }
+        }
+        assert(false); // TODO
+        return result;
+    }
+
+    Mat square(const Mat& m){
+        auto dim = dimension(m);
+        size_t max_dim = std::max(dim[0], dim[1]);
+
+        Vec v(max_dim);
+        Mat result(max_dim, v);
+
+        for(size_t row = 0; row < dim[0]; ++row){
+            for(size_t col = 0; col < dim[1]; ++col){
+                result[row][col] = m[row][col];
+            }
+        }
+        return result;
+    }
+
     std::pair<double, Mat> determinant_Mat(const std::pair<double, Mat>& in){
         Mat m = in.second;
         const auto dim = dimension(m);

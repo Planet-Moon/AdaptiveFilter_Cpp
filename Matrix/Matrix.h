@@ -85,6 +85,8 @@ namespace Matrix{
     Mat mean(const Mat& m, int dim);
     Mat mean(const Mat3& m, int dim);
     int size(const Mat& m, int dim);
+    Mat invert(const Mat& m);
+    Mat square(const Mat& m);
     double determinant(const Mat& m);
     Mat ignoreRowCol(const Mat& m, int row, int col);
     bool hasFullRank(const Mat& m);

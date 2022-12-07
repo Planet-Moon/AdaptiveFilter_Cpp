@@ -145,6 +145,13 @@ TEST(Matrix, Mean2){
     EXPECT_EQ(mean, expected);
 }
 
+TEST(Matrix, invert){
+    Mat m = {{-1, 1.5}, {1, -1}};
+    Mat m_inv = Matrix::invert(m);
+    Mat expected = {{2, 3}, {2, 2}};
+    EXPECT_EQ(m_inv, expected);
+}
+
 TEST(Matrix, determinant){
     Mat m = {{0,1,2},{3,2,1},{1,1,0}};
     double det = Matrix::determinant(m);
