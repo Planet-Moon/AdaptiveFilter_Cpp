@@ -16,17 +16,24 @@
         <p>Sinus Generator Frequency: <span id="sinFreq"></span> Hz</p>
         <p>Dominant Frequency: <span id="dominantFreq"></span> Hz</p>
         <div class="row">
-            <div class="col-6">
-                <span id="chartLog_graph_coords">Coordinates</span>
+            <div class="col-4">
+                <span>FFT Log - </span><span id="chartLog_graph_coords">Coordinates</span>
                 <div class="card p-3">
-                    <canvas id="chartLog"></canvas>
+                    <canvas id="chartLogFFT"></canvas>
                 </div>
             </div>
 
-            <div class="col-6">
-                <span id="chart_graph_coords">Coordinates</span>
+            <div class="col-4">
+                <span>FFT - </span><span id="chart_graph_coords">Coordinates</span>
                 <div class="card p-3">
-                    <canvas id="chart"></canvas>
+                    <canvas id="chartFFT"></canvas>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <span>Signal</span>
+                <div class="card p-3">
+                    <canvas id="chartSignal"></canvas>
                 </div>
             </div>
         </div>

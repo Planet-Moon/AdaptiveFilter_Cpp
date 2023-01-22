@@ -34,6 +34,18 @@ static Json::Value fromVector(const std::vector<T>& vector, size_t length){
     return result;
 }
 
+static Json::Value fromVector(const std::vector<DataPoint> vector, size_t length){
+    Json::Value time, value;
+    for(int i=0; i < length; ++i){
+        time[i] = vector[i].time;
+        value[i] = vector[i].value;
+    }
+    Json::Value result;
+    result["timestamps"] = time;
+    result["values"] = value;
+    return result;
+}
+
 template <typename T>
 static Json::Value fromVector(const std::vector<std::complex<T>>& vector){
     Json::Value result;
@@ -210,6 +222,7 @@ int main(int argc, const char** argv) {
     const int dataPointsSize = 1500;
     std::queue<std::vector<DataPoint>> dataPoints;
     size_t dataPoints_sampled = 0;
+    std::vector<DataPoint> data(dataPointsSize);
 
     double time = 0;
 
@@ -218,8 +231,9 @@ int main(int argc, const char** argv) {
 
     httplib::Server svr;
     float sinus_frequency = 0;
-    svr.Get("/data", [&fft_complex, &fft_freq, &sinus_frequency](const httplib::Request &, httplib::Response &res){
+    svr.Get("/data", [&fft_complex, &fft_freq, &sinus_frequency, &data, &dataPoints_sampled](const httplib::Request &, httplib::Response &res){
         Json::Value json;
+        json["signal"] = fromVector(data, dataPoints_sampled);
         json["fft"] = fromVector(fft_complex, fft_complex.size()/2 -1);
         json["freq"] = fromVector(fft_freq, fft_complex.size()/2 -1);
         json["sinFreq"] = sinus_frequency;
@@ -233,7 +247,6 @@ int main(int argc, const char** argv) {
     bool fft_ready = false;
     auto fft_thread = std::make_unique<std::thread>(fft_thread_func, &dataPoints, &dataPoints_sampled, &fft_complex, &fft_ready);
 
-    std::vector<DataPoint> data(dataPointsSize);
     while (true)
     {
         float next_freq = generatorChanger.calculate_next_freq();

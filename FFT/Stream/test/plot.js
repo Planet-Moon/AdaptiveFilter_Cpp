@@ -1,8 +1,9 @@
 $(()=>{
-    const ctxLog = $('#chartLog');
-    const ctx = $('#chart');
+    const ctxLogFFT = $('#chartLogFFT');
+    const ctxFFT = $('#chartFFT');
+    const ctxSignal = $('#chartSignal');
 
-    var chart_config = {
+    var chart_fft_config = {
         type: 'scatter',
         data: {
             datasets: [{
@@ -44,12 +45,12 @@ $(()=>{
         plugins: []
     };
 
-    var chartLog_config = JSON.parse(JSON.stringify(chart_config));
-    chartLog_config.options.scales.y = {
+    var chartFFTLog_config = JSON.parse(JSON.stringify(chart_fft_config));
+    chartFFTLog_config.options.scales.y = {
         // type: 'logarithmic'
     };
-    var chartLog = new Chart(ctxLog, chartLog_config);
-    var chart = new Chart(ctx, chart_config);
+    var chartLogFFT = new Chart(ctxLogFFT, chartFFTLog_config);
+    var chartFFT = new Chart(ctxFFT, chart_fft_config);
 
     function mapToChartCoords(chart, x, y){
         var ytop = chart.chartArea.top;
@@ -76,9 +77,9 @@ $(()=>{
         return {newx, newy};
     }
 
-    ctxLog.mousemove(function(evt) {
+    ctxLogFFT.mousemove(function(evt) {
         // console.log(evt.offsetX + "," + evt.offsetY);
-        var obj = mapToChartCoords(chartLog, evt.offsetX, evt.offsetY);
+        var obj = mapToChartCoords(chartLogFFT, evt.offsetX, evt.offsetY);
 
         if (obj.newy != '' && obj.newx != '') {
             //console.log(newx + ',' + newy);
@@ -86,8 +87,8 @@ $(()=>{
         }
     });
 
-    ctx.mousemove(function(evt) {
-        var obj = mapToChartCoords(chart, evt.offsetX, evt.offsetY);
+    ctxFFT.mousemove(function(evt) {
+        var obj = mapToChartCoords(chartFFT, evt.offsetX, evt.offsetY);
 
         if (obj.newy != '' && obj.newx != '') {
             //console.log(newx + ',' + newy);
@@ -139,16 +140,95 @@ $(()=>{
         chart.update();
     }
 
-    function plotDataLog(data){
+    function plotDataFFTLog(data){
         magnitudes = parseMagnitudeLog(data);
         frequencies = parseFrequencies(data);
-        updateFFTChart(chartLog, magnitudes, frequencies);
+        updateFFTChart(chartLogFFT, magnitudes, frequencies);
     }
 
-    function plotData(data){
+    function plotDataFFT(data){
         magnitudes = parseMagnitude(data);
         frequencies = parseFrequencies(data);
-        updateFFTChart(chart, magnitudes, frequencies);
+        updateFFTChart(chartFFT, magnitudes, frequencies);
+    }
+
+    var chart_signal_config = {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: "Signal",
+                data: [],
+                showLine: true,
+                tension: 0
+            }]
+        },
+        options: {
+            animation: {
+                duration: 200,
+            }, // general animation time
+            hover: {
+                animationDuration: 0,
+            }, // duration of animations when hovering an item
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            tooltips: {
+                mode: 'index',
+                intersect: false,
+                footerFontStyle: 'normal'
+            },
+            responsive: true,
+            // scales: {
+            //     x: {
+            //         min: 0,
+            //         max: 0
+            //     },
+            //     y: {
+            //         beginAtZero: false
+            //     }
+            // },
+            elements: {
+                point: {
+                    radius: 0
+                }
+            }
+        },
+        plugins: []
+    };
+    var chartSignal = new Chart(ctxSignal, chart_signal_config);
+
+    function parseValues(data){
+        var values = []
+        data.signal.values.forEach(element => {
+            values.push(math.number(element));
+        });
+        return values;
+    }
+
+    function parseTimestamps(data){
+        var timestamps = [];
+        data.signal.timestamps.forEach(element => {
+            timestamps.push(math.number(element));
+        });
+        return timestamps;
+    }
+
+    function updateSignalChart(chart, timestamps, values){
+        var _chart_data = [];
+        var display_size_ = timestamps.length;
+        for(var i = 0; i < display_size_; i++){
+            _chart_data.push({x: Number(timestamps[i]), y: Number(values[i])});
+        }
+        // chart.options.scales.x.max = timestamps[display_size_-1];
+        // chart.options.scales.x.min = timestamps[0];
+        // chart.options.scales.y.min = Math.min(values);
+        // chart.options.scales.y.max = Math.max(values);
+        chart.data.datasets[0].data = _chart_data;
+        chart.update();
+    }
+
+    function plotSignal(data){
+        var values = parseValues(data);
+        var timestamps = parseTimestamps(data);
+        updateSignalChart(chartSignal, timestamps, values);
     }
 
     function get_data(){
@@ -158,8 +238,9 @@ $(()=>{
             dataType: 'json',
             contentType: 'text/plain; charset=utf-8',
             success: (data, textStatus, jqXHR)=>{
-                plotData(data);
-                plotDataLog(data);
+                plotDataFFT(data);
+                plotDataFFTLog(data);
+                plotSignal(data);
                 $("#sinFreq").html(data.sinFreq.toFixed(2));
                 $("#dominantFreq").html(data.dominantFreq.toFixed(2));
             }
