@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+#include <cassert>
 
 template<typename T>
 static void rotate_vector(std::vector<T>& vector){
@@ -10,14 +11,39 @@ static void rotate_vector(std::vector<T>& vector){
     vector.front() = T();
 }
 
+template<typename T>
+static void rotate_vector(std::vector<T>& vector, const T& front_data){
+    if(vector.size() > 1)
+        std::rotate(vector.rbegin(), vector.rbegin()+1, vector.rend());
+    vector.front() = front_data;
+}
+
 Spectrogram::Spectrogram(unsigned int _buffer_size, unsigned int _display_buffer_size):
-    buffer_size(_buffer_size), display_buffer_size(_display_buffer_size) {
-        const auto helper = std::vector<std::complex<double>>(buffer_size);
-        display_buffer = std::vector<std::vector<std::complex<double>>>(display_buffer_size, helper);
+    buffer_size(_buffer_size), display_buffer_size(_display_buffer_size)
+{
+    _buffer = std::vector<DataPoint>(buffer_size);
+    const auto helper = std::vector<std::complex<double>>(buffer_size);
+    display_buffer = std::vector<std::vector<std::complex<double>>>(display_buffer_size, helper);
+
+    fft_thread = std::thread(
+        [](const bool& run, std::queue<std::vector<DataPoint>>& input, std::queue<std::vector<std::complex<double>>>& output)
+        {
+            std::vector<Spectrogram::DataPoint> i;
+            while(run){
+                if(input.empty())
+                    continue;
+                i = input.front();
+                input.pop();
+                output.emplace(Spectrogram::calculate_fft(i));
+            }
+        },
+        std::ref(fft_thread_run), std::ref(fft_input_queue), std::ref(fft_output_queue)
+    );
 }
 
 Spectrogram::~Spectrogram(){
-
+    fft_thread_run = false;
+    fft_thread.join();
 }
 
 void Spectrogram::addSample(double sample)
@@ -25,17 +51,23 @@ void Spectrogram::addSample(double sample)
     DataPoint dp;
     dp.timepoint = std::chrono::steady_clock::now();
     dp.value = sample;
-    _buffer.push_back(dp);
-
-    if(_buffer.size() >= buffer_size){
-        const auto fft_complex_result = _calculate_fft(_buffer);
+    rotate_vector(_buffer, dp);
+    _sample_counter++;
+    if(_sample_counter >= _sample_counter_max){
+        _evaluateTimepoints(_buffer);
+        fft_input_queue.push(_buffer);
         rotate_vector(display_buffer);
-        display_buffer.front() = fft_complex_result;
-
-        _last_datapoint_before_update.release();
-        _last_datapoint_before_update = std::make_unique<DataPoint>(_buffer.back());
-        _buffer.clear();
+        _sample_counter = 0;
     }
+}
+
+void Spectrogram::setEvaluatedSamples(unsigned int value) {
+    assert(value <= _buffer.size()); // value should not be smaller than buffer size
+    _sample_counter_max = value;
+}
+
+unsigned int Spectrogram::getEvaluatedSamples() const {
+    return _sample_counter_max;
 }
 
 double Spectrogram::sampleFrequency() const {
@@ -78,25 +110,18 @@ std::vector<double> Spectrogram::fromDecibel(const std::vector<double>& vector){
     return result;
 }
 
-std::vector<Spectrogram::Color> Spectrogram::vector2Color(const std::vector<double>& vector) const {
-    return {}; // todo
-}
-
 double Spectrogram::_mean_sampletime(const std::vector<std::chrono::steady_clock::time_point>& timepoints) const {
     std::vector<std::chrono::duration<long, std::nano>> time_delta(timepoints.size()-1);
+    const int divider = timepoints.size()-1;
     double sum = 0.;
-    const int divider = _last_datapoint_before_update ? timepoints.size() : timepoints.size()-1;
-    if(_last_datapoint_before_update){
-        sum += (_last_datapoint_before_update->timepoint - timepoints[0]).count();
-    }
     for(size_t i = 0; i < timepoints.size()-1; ++i){
-        sum += (timepoints[i+1] - timepoints[i]).count(); // nanoseconds
+        sum += (timepoints[i] - timepoints[i+1]).count(); // nanoseconds
     }
     double mean = sum / divider;
     return mean;
 }
 
-std::vector<std::complex<double>> Spectrogram::_calculate_fft(const std::vector<DataPoint>& datapoints) const {
+void Spectrogram::_evaluateTimepoints(const std::vector<DataPoint>& datapoints){
     std::vector<std::chrono::steady_clock::time_point> timepoints(datapoints.size());
     std::transform(datapoints.begin(), datapoints.end(), timepoints.begin(), [](const DataPoint& dp){
         return dp.timepoint;
@@ -105,7 +130,9 @@ std::vector<std::complex<double>> Spectrogram::_calculate_fft(const std::vector<
     const double f_s = 1'000'000'000/mean_sampletime; // Hz
     _sample_frequency = f_s;
     _buffer_time = buffer_size * mean_sampletime/1'000'000'000;
+}
 
+std::vector<std::complex<double>> Spectrogram::calculate_fft(const std::vector<DataPoint>& datapoints){
     std::vector<double> samples(datapoints.size());
     std::transform(datapoints.begin(), datapoints.end(), samples.begin(), [](const DataPoint& dp){
         return dp.value;

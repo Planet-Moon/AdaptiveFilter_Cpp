@@ -18,8 +18,21 @@ TEST(Spectrogram, Constructor2){
     Spectrogram spectrogram(1024);
 }
 
-void sleep(std::chrono::nanoseconds duration){
+void sleep(const std::chrono::nanoseconds& duration){
     const auto start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point now;
+    std::chrono::nanoseconds elapsed;
+    while (true)
+    {
+        now = std::chrono::high_resolution_clock::now();
+        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start);
+        if(elapsed.count() > duration.count()){
+            break;
+        }
+    }
+}
+
+void sleep(const std::chrono::steady_clock::time_point& start, const std::chrono::nanoseconds& duration){
     std::chrono::high_resolution_clock::time_point now;
     std::chrono::nanoseconds elapsed;
     while (true)
@@ -99,11 +112,16 @@ TEST(Spectrogram, Decibel) {
 
 TEST(Spectrogram, addSample){
     Spectrogram s(16*2);
-
+    s.setEvaluatedSamples(4);
+    std::chrono::high_resolution_clock::time_point start;
     for(int i=0; i<512; i++){
+        start = std::chrono::high_resolution_clock::now();
         s.addSample(i);
-        sleep(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::microseconds(1000)));
+        sleep(start, std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::microseconds(1000)));
     }
+    std::cout << "Frequency: " << s.sampleFrequency() << "Hz" << std::endl;
+    std::cout << "Sample Period: " << 1/s.sampleFrequency() << " s" << std::endl;
     const auto deviation = abs((s.sampleFrequency()/1000)-1);
+    std::cout << "Sample frequency deviation: " << deviation << " %" << std::endl;
     EXPECT_LE(deviation, 0.13);
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <queue>
+#include <thread>
 #include <FFT.h>
 
 
@@ -15,6 +16,9 @@ public:
 
     std::vector<std::vector<std::complex<double>>> display_buffer;
 
+    void setEvaluatedSamples(unsigned int value);
+    unsigned int getEvaluatedSamples() const;
+
     double sampleFrequency() const;
     double bufferTime() const;
 
@@ -24,29 +28,24 @@ public:
     static std::vector<double> toDecibel(const std::vector<double>& vector);
     static std::vector<double> fromDecibel(const std::vector<double>& vector);
 
-    struct Color{
-        uint8_t red = 0;
-        uint8_t green = 0;
-        uint8_t blue = 0;
-    };
-    std::vector<Color> vector2Color(const std::vector<double>& vector) const;
-
-    unsigned int minimum_abs = 0;
-    unsigned int maximum_abs = 100;
-
 private:
-
+    unsigned int _sample_counter = 0;
+    unsigned int _sample_counter_max = 10;
     mutable double _sample_frequency = -1;
     mutable double _buffer_time = -1;
     struct DataPoint{
         double value;
         std::chrono::steady_clock::time_point timepoint;
     };
-    std::unique_ptr<DataPoint> _last_datapoint_before_update{};
     std::vector<DataPoint> _buffer{};
 
+    std::thread fft_thread;
+    bool fft_thread_run = true;
+    std::queue<std::vector<DataPoint>> fft_input_queue;
+    std::queue<std::vector<std::complex<double>>> fft_output_queue;
 
-    std::vector<std::complex<double>> _calculate_fft(const std::vector<DataPoint>& datapoints) const;
+    void _evaluateTimepoints(const std::vector<DataPoint>& datapoints);
+    static std::vector<std::complex<double>> calculate_fft(const std::vector<DataPoint>& datapoints);
 
     /**
      * @brief Calculate mean delta t beween timepoints
