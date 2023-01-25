@@ -33,11 +33,8 @@ void sleep(std::chrono::nanoseconds duration){
 TEST(Spectrogram, addSample){
     Spectrogram s(1024*2);
 
-    // std::chrono::steady_clock::time_point _awake_time = now();
     for(int i=0; i<2048*2; i++){
-        // _awake_time = awake_time();
         s.addSample(i);
-        // std::this_thread::sleep_until(_awake_time);
         sleep(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::microseconds(1000)));
     }
 }
