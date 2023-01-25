@@ -65,6 +65,14 @@ target_include_directories(fft PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FFT)
 target_link_libraries(fft PUBLIC FftComplex)
 target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 
+add_library(spectrogram STATIC
+    spectrogram/spectrogram.h
+    spectrogram/spectrogram.cpp
+)
+target_include_directories(spectrogram PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/spectrogram)
+target_link_libraries(spectrogram PUBLIC fft)
+add_subdirectory(spectrogram/test)
+
 add_executable(fft_stream
     FFT/Stream/DataSource.h
     FFT/Stream/DataSource.cpp
