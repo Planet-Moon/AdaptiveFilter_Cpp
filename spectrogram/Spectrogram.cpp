@@ -129,7 +129,7 @@ void Spectrogram::_evaluateTimepoints(const std::vector<DataPoint>& datapoints){
     const double mean_sampletime = _mean_sampletime(timepoints);
     const double f_s = 1'000'000'000/mean_sampletime; // Hz
     _sample_frequency = f_s;
-    _buffer_time = buffer_size * mean_sampletime/1'000'000'000;
+    _buffer_time = buffer_size * mean_sampletime/static_cast<double>(1'000'000'000);
 }
 
 std::vector<std::complex<double>> Spectrogram::calculate_fft(const std::vector<DataPoint>& datapoints){
