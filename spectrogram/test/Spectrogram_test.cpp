@@ -1,9 +1,9 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
-#include <thread>
 #include "gtest/gtest.h"
 #include <Spectrogram.h>
+#include <Sleep.h>
 
 TEST(Spectrogram, Build){
     EXPECT_TRUE(true);
@@ -16,33 +16,6 @@ TEST(Spectrogram, Constructor1){
 
 TEST(Spectrogram, Constructor2){
     Spectrogram spectrogram(1024);
-}
-
-void sleep(const std::chrono::nanoseconds& duration){
-    const auto start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point now;
-    std::chrono::nanoseconds elapsed;
-    while (true)
-    {
-        now = std::chrono::high_resolution_clock::now();
-        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start);
-        if(elapsed.count() > duration.count()){
-            break;
-        }
-    }
-}
-
-void sleep(const std::chrono::steady_clock::time_point& start, const std::chrono::nanoseconds& duration){
-    std::chrono::high_resolution_clock::time_point now;
-    std::chrono::nanoseconds elapsed;
-    while (true)
-    {
-        now = std::chrono::high_resolution_clock::now();
-        elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start);
-        if(elapsed.count() > duration.count()){
-            break;
-        }
-    }
 }
 
 std::vector<std::complex<double>> complexVec(std::complex<double> input){

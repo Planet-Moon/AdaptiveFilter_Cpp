@@ -68,9 +68,11 @@ target_link_libraries(fft PUBLIC OpenMP::OpenMP_CXX)
 add_library(spectrogram STATIC
     spectrogram/spectrogram.h
     spectrogram/spectrogram.cpp
+    spectrogram/InputThread.h
+    spectrogram/InputThread.cpp
 )
 target_include_directories(spectrogram PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/spectrogram)
-target_link_libraries(spectrogram PUBLIC fft)
+target_link_libraries(spectrogram PUBLIC fft noise signal_generators)
 add_subdirectory(spectrogram/test)
 
 add_executable(fft_stream
@@ -90,28 +92,32 @@ target_include_directories(fft_stream PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream PRIVATE fft)
 target_link_libraries(fft_stream PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 
+add_library(signal_generators
+    SignalGenerators/SinusGenerator.h
+    SignalGenerators/SinusGenerator.cpp
+    SignalGenerators/RectGenerator.h
+    SignalGenerators/RectGenerator.cpp
+    SignalGenerators/Sleep.h
+    SignalGenerators/Sleep.cpp
+)
+target_include_directories(signal_generators PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SignalGenerators)
+
 add_executable(fft_stream_test
-    FFT/Stream/test/SinusGenerator.h
-    FFT/Stream/test/SinusGenerator.cpp
     FFT/Stream/test/FFTStreamTest.cpp
 )
 target_include_directories(fft_stream_test PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream_test PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
-target_link_libraries(fft_stream_test PRIVATE noise)
+target_link_libraries(fft_stream_test PRIVATE noise signal_generators)
 
 add_executable(fft_stream_combined
     FFT/Stream/DataPoint.h
     FFT/Stream/DataPoint.cpp
-    FFT/Stream/test/SinusGenerator.h
-    FFT/Stream/test/SinusGenerator.cpp
-    FFT/Stream/test/RectGenerator.h
-    FFT/Stream/test/RectGenerator.cpp
     FFT/Stream/test/FFTStreamCombined.cpp
 )
 target_include_directories(fft_stream_combined PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/FFT/Stream)
 target_include_directories(fft_stream_combined PRIVATE ${CPP_HTTPLIB_INCLUDE_DIRS})
 target_link_libraries(fft_stream_combined PRIVATE jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
-target_link_libraries(fft_stream_combined PRIVATE fft noise)
+target_link_libraries(fft_stream_combined PRIVATE fft noise signal_generators)
 
 add_library(noise STATIC
     Noise/WhiteNoise.h
