@@ -56,6 +56,8 @@ public:
     MutexQueue<std::vector<std::complex<double>>>* getFFTQueue();
     unsigned int fftInputQueueSize() const;
 
+    static void abs(const std::vector<std::complex<double>>::const_iterator in_begin, const std::vector<std::complex<double>>::const_iterator in_end, std::vector<double>::iterator out_begin);
+    static void arg(const std::vector<std::complex<double>>::const_iterator in_begin, const std::vector<std::complex<double>>::const_iterator in_end, std::vector<double>::iterator out_begin);
     static std::vector<double> abs(const std::vector<std::complex<double>>& vector);
     static std::vector<double> arg(const std::vector<std::complex<double>>& vector);
 

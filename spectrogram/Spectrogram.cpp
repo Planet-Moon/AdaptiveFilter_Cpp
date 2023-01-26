@@ -91,19 +91,27 @@ unsigned int Spectrogram::fftInputQueueSize() const {
     return fft_input_queue.size();
 }
 
-std::vector<double> Spectrogram::abs(const std::vector<std::complex<double>>& vector){
-    std::vector<double> result(vector.size());
-    std::transform(vector.begin(), vector.end(), result.begin(), [](const std::complex<double>& v){
+void Spectrogram::abs(std::vector<std::complex<double>>::const_iterator in_begin, std::vector<std::complex<double>>::const_iterator in_end, std::vector<double>::iterator out_begin){
+    std::transform(in_begin, in_end, out_begin, [](const std::complex<double>& v){
         return std::abs(v);
     });
+}
+
+void Spectrogram::arg(std::vector<std::complex<double>>::const_iterator in_begin, std::vector<std::complex<double>>::const_iterator in_end, std::vector<double>::iterator out_begin){
+    std::transform(in_begin, in_end, out_begin, [](const std::complex<double>& v){
+        return std::arg(v);
+    });
+}
+
+std::vector<double> Spectrogram::abs(const std::vector<std::complex<double>>& vector){
+    std::vector<double> result(vector.size());
+    Spectrogram::abs(vector.begin(), vector.end(), result.begin());
     return result;
 }
 
 std::vector<double> Spectrogram::arg(const std::vector<std::complex<double>>& vector){
     std::vector<double> result(vector.size());
-    std::transform(vector.begin(), vector.end(), result.begin(), [](const std::complex<double>& v){
-        return std::arg(v);
-    });
+    Spectrogram::arg(vector.begin(), vector.end(), result.begin());
     return result;
 }
 
