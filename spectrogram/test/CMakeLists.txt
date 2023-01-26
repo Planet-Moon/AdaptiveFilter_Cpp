@@ -5,6 +5,7 @@ find_package(GTest CONFIG REQUIRED)
 add_executable(spectrogram_test
 main.cpp
 Spectrogram_test.cpp
+InputThread_test.cpp
 )
 
 target_link_libraries(spectrogram_test
@@ -18,5 +19,6 @@ target_link_libraries(spectrogram_test
 target_link_libraries(spectrogram_test
     PRIVATE
         spectrogram
+        signal_generators
 )
 target_include_directories(spectrogram_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
