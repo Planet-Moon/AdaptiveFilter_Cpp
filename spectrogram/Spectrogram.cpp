@@ -26,7 +26,7 @@ Spectrogram::Spectrogram(unsigned int _buffer_size, unsigned int _display_buffer
     display_buffer = std::vector<std::vector<std::complex<double>>>(display_buffer_size, helper);
 
     fft_thread = std::thread(
-        [](const bool& run, std::queue<std::vector<DataPoint>>& input, std::queue<std::vector<std::complex<double>>>& output)
+        [](const bool& run, MutexQueue<std::vector<DataPoint>>& input, MutexQueue<std::vector<std::complex<double>>>& output)
         {
             std::vector<Spectrogram::DataPoint> i;
             while(run){
@@ -34,7 +34,11 @@ Spectrogram::Spectrogram(unsigned int _buffer_size, unsigned int _display_buffer
                     continue;
                 i = input.front();
                 input.pop();
-                output.emplace(Spectrogram::calculate_fft(i));
+                auto start_time = std::chrono::high_resolution_clock::now();
+                const auto _output = Spectrogram::calculate_fft(i);
+                output.push(_output);
+                std::cout << "input  queue size: " << input.size() << " | output queue size: " << output.size() <<
+                " | time needed: " << std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(std::chrono::high_resolution_clock::now()-start_time).count() << "milliseconds" <<  std::endl;
             }
         },
         std::ref(fft_thread_run), std::ref(fft_input_queue), std::ref(fft_output_queue)
@@ -55,6 +59,7 @@ void Spectrogram::addSample(double sample)
     _sample_counter++;
     if(_sample_counter >= _sample_counter_max){
         _evaluateTimepoints(_buffer);
+        assert(fft_input_queue.size() < 10); // queue size should be smaller than two
         fft_input_queue.push(_buffer);
         rotate_vector(display_buffer);
         _sample_counter = 0;
@@ -76,6 +81,14 @@ double Spectrogram::sampleFrequency() const {
 
 double Spectrogram::bufferTime() const {
     return _buffer_time;
+}
+
+MutexQueue<std::vector<std::complex<double>>>* Spectrogram::getFFTQueue(){
+    return &fft_output_queue;
+}
+
+unsigned int Spectrogram::fftInputQueueSize() const {
+    return fft_input_queue.size();
 }
 
 std::vector<double> Spectrogram::abs(const std::vector<std::complex<double>>& vector){

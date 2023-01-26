@@ -1,8 +1,39 @@
 #pragma once
 #include <chrono>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <FFT.h>
+
+template<typename T>
+class MutexQueue{
+public:
+    void push(const T& data){
+        std::lock_guard<std::mutex> g(mtx);
+        _queue.push(data);
+    }
+    void pop(){
+        std::lock_guard<std::mutex> g(mtx);
+        _queue.pop();
+    }
+    T front(){
+        std::lock_guard<std::mutex> g(mtx);
+        return _queue.front();
+    }
+    size_t size() const {
+        std::lock_guard<std::mutex> g(mtx);
+        return _queue.size();
+    }
+    bool empty() const {
+        std::lock_guard<std::mutex> g(mtx);
+        return _queue.empty();
+    }
+    std::mutex* getMutex(){return &mtx;}
+    std::queue<T>* getQueue(){return &_queue;}
+protected:
+    std::queue<T> _queue;
+    mutable std::mutex mtx;
+};
 
 
 class Spectrogram{
@@ -21,6 +52,9 @@ public:
 
     double sampleFrequency() const;
     double bufferTime() const;
+
+    MutexQueue<std::vector<std::complex<double>>>* getFFTQueue();
+    unsigned int fftInputQueueSize() const;
 
     static std::vector<double> abs(const std::vector<std::complex<double>>& vector);
     static std::vector<double> arg(const std::vector<std::complex<double>>& vector);
@@ -41,8 +75,8 @@ private:
 
     std::thread fft_thread;
     bool fft_thread_run = true;
-    std::queue<std::vector<DataPoint>> fft_input_queue;
-    std::queue<std::vector<std::complex<double>>> fft_output_queue;
+    MutexQueue<std::vector<DataPoint>> fft_input_queue;
+    MutexQueue<std::vector<std::complex<double>>> fft_output_queue;
 
     void _evaluateTimepoints(const std::vector<DataPoint>& datapoints);
     static std::vector<std::complex<double>> calculate_fft(const std::vector<DataPoint>& datapoints);
