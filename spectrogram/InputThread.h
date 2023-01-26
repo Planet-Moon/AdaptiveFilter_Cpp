@@ -2,7 +2,6 @@
 #include <chrono>
 #include <memory>
 #include <limits>
-#include <thread>
 #include <WhiteNoise.h>
 
 
@@ -42,7 +41,4 @@ public:
 private:
     std::unique_ptr<SinusGenerator> _sinusGenerator;
     std::unique_ptr<WhiteNoise> _noiseGenerator;
-
-    std::thread _sample_thread;
-    bool _sample_thread_run{true};
 };

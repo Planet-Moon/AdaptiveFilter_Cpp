@@ -66,7 +66,7 @@ InputThread::~InputThread(){
 }
 
 double InputThread::next(){
-    return 1.0 * _sinusGenerator->next() + 0.0 * _noiseGenerator->generate();
+    return 1.0 * _sinusGenerator->next() + 1.0 * _noiseGenerator->generate();
 }
 
 SinusGenerator* InputThread::getSinusGenerator(){
