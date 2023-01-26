@@ -15,4 +15,6 @@ TEST(SpectrogramUI, Three){
     SpectrogramUI specUi;
     specUi.spectrogram->setEvaluatedSamples(200);
     specUi.run();
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    specUi.stop();
 }

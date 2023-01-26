@@ -5,10 +5,6 @@
 SpectrogramUI::SpectrogramUI(){
     spectrogram = std::make_unique<Spectrogram>(32, 1);
     spectrogram->setEvaluatedSamples(32);
-
-    run_thread = std::thread([this](){
-        run();
-    });
 }
 
 SpectrogramUI::~SpectrogramUI(){
@@ -21,7 +17,14 @@ std::vector<SpectrogramUI::Color> SpectrogramUI::vector2Color(const std::vector<
 }
 
 void SpectrogramUI::run(){
+    run_thread = std::thread(&SpectrogramUI::_run_func, this);
+}
 
+void SpectrogramUI::stop(){
+    _run = false;
+}
+
+void SpectrogramUI::_run_func(){
     MutexQueue<std::vector<std::complex<double>>>* fft_queue = spectrogram->getFFTQueue();
     auto queue_size = fft_queue->size();
 
@@ -45,8 +48,4 @@ void SpectrogramUI::run(){
 
         sleep(_start, std::chrono::microseconds(50));
     }
-}
-
-void SpectrogramUI::stop(){
-    _run = false;
 }

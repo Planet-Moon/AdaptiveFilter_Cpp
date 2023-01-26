@@ -22,6 +22,7 @@ public:
     std::unique_ptr<Spectrogram> spectrogram;
 
 private:
+    void _run_func();
     bool _run{true};
 
     std::thread run_thread;
