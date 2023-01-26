@@ -6,6 +6,7 @@ add_executable(spectrogram_test
 main.cpp
 Spectrogram_test.cpp
 InputThread_test.cpp
+SpectrogramUI_test.cpp
 )
 
 target_link_libraries(spectrogram_test

@@ -70,10 +70,18 @@ add_library(spectrogram STATIC
     spectrogram/spectrogram.cpp
     spectrogram/InputThread.h
     spectrogram/InputThread.cpp
+    spectrogram/spectrogramUI.h
+    spectrogram/spectrogramUI.cpp
 )
 target_include_directories(spectrogram PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/spectrogram)
 target_link_libraries(spectrogram PUBLIC fft noise signal_generators)
 add_subdirectory(spectrogram/test)
+
+add_executable(spectrogram_ui
+    spectrogram/spectrogramUI_main.cpp
+)
+target_link_libraries(spectrogram_ui PRIVATE spectrogram)
+target_include_directories(spectrogram_ui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/spectrogram)
 
 add_executable(fft_stream
     FFT/Stream/DataSource.h
