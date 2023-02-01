@@ -329,20 +329,32 @@ namespace Matrix{
     }
 
     Mat invert(const Mat& m){
+        // needs at least rank of two for determinate
         Mat tmp = Matrix::square(m);
+        if(!Matrix::hasFullRank(tmp)){
+            return {};
+        }
+
         Mat result = Matrix::identity(tmp.size());
 
         const size_t rows = tmp.size();
         const size_t cols = tmp[0].size();
 
-
-
         for(int col = 0; col < cols; ++col){
-            for(int row = 0; row < rows; ++row){
+            const int step = col;
 
+            const double f = 1/tmp[step][step];
+            tmp[step] = tmp[step] * f;
+            result[step] = result[step] * f;
+
+            const double t = 1/tmp[step][step];
+            for(int row = 0; row < rows; ++row){
+                if(row == step) continue;
+                const double v = tmp[row][step]*t;
+                tmp[row] = tmp[row] - v * tmp[step];
+                result[row] = result[row] - v * result[step];
             }
         }
-        assert(false); // TODO
         return result;
     }
 

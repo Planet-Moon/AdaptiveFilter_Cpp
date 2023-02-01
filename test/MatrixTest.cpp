@@ -53,7 +53,7 @@ TEST(Vector, power){
     Vec v1 = {12,32,36};
     Vec v2 = {0,1,2};
     Vec v3 = power(v1, v2);
-    Vec expected = {1, 2, std::pow(36, 2)};
+    Vec expected = {1, 32, std::pow(36, 2)};
     EXPECT_EQ(v3, expected);
 }
 
@@ -145,13 +145,6 @@ TEST(Matrix, Mean2){
     EXPECT_EQ(mean, expected);
 }
 
-TEST(Matrix, invert){
-    Mat m = {{-1, 1.5}, {1, -1}};
-    Mat m_inv = Matrix::invert(m);
-    Mat expected = {{2, 3}, {2, 2}};
-    EXPECT_EQ(m_inv, expected);
-}
-
 TEST(Matrix, determinant){
     Mat m = {{0,1,2},{3,2,1},{1,1,0}};
     double det = Matrix::determinant(m);
@@ -212,4 +205,18 @@ TEST(Matrix, hasFullRank){
         bool full_rank = Matrix::hasFullRank(m);
         EXPECT_TRUE(full_rank);
     }
+}
+
+TEST(Matrix, invert){
+    Mat m = {{-1, 1.5}, {2, -1}};
+    Mat m_inv = Matrix::invert(m);
+    Mat expected = {{0.5, 0.75}, {1, 0.5}};
+    EXPECT_EQ(m_inv, expected);
+}
+
+TEST(Matrix, invert1){
+    Mat m = {{-1, 1.5}, {1, -1}};
+    Mat m_inv = Matrix::invert(m);
+    Mat expected = {{2, 3}, {2, 2}};
+    EXPECT_EQ(m_inv, expected);
 }
