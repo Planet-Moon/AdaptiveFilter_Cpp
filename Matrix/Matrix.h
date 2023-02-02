@@ -90,6 +90,7 @@ namespace Matrix{
     double determinant(const Mat& m);
     Mat ignoreRowCol(const Mat& m, int row, int col);
     bool hasFullRank(const Mat& m);
+    Mat round(const Mat& m, double precision = 1.0);
 };
 
 namespace Vector{

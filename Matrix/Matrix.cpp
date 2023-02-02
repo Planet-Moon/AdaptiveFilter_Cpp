@@ -348,9 +348,11 @@ namespace Matrix{
             result[step] = result[step] * f;
 
             const double t = 1/tmp[step][step];
+            #pragma omp parallel for
             for(int row = 0; row < rows; ++row){
                 if(row == step) continue;
                 const double v = tmp[row][step]*t;
+                if(v == 0) continue;
                 tmp[row] = tmp[row] - v * tmp[step];
                 result[row] = result[row] - v * result[step];
             }
@@ -408,6 +410,25 @@ namespace Matrix{
 
     bool hasFullRank(const Mat& m){
         return 0 != determinant(m);
+    }
+
+    double round_to(double value, double precision = 1.0)
+    {
+        return std::round(value / precision) * precision;
+    }
+
+    Mat round(const Mat &m, double precision){
+        const int rows = m.size();
+        const int cols = m[0].size();
+        Mat result = m;
+        #pragma omp parallel for
+        for(int i=0; i < rows; i++){
+            #pragma omp parallel for
+            for(int j=0; j < cols; j++){
+                result[i][j] = round_to(m[i][j], precision);
+            }
+        }
+        return result;
     }
 };
 

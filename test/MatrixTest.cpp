@@ -220,3 +220,25 @@ TEST(Matrix, invert1){
     Mat expected = {{2, 3}, {2, 2}};
     EXPECT_EQ(m_inv, expected);
 }
+
+TEST(Matrix, invert2){
+    Mat m = {{-1, 1.5, 1}, {1, -1, 1}, {2, -2, 1}};
+    Mat m_inv = Matrix::invert(m);
+    Mat expected = {{2, -7, 5}, {2, -6, 4}, {0, 2, -1}};
+    EXPECT_EQ(m_inv, expected);
+}
+
+TEST(Matrix, invert3){
+    Mat m = {{-1, 1.5, 1}, {1, -1, 1}, {2, -2, 1}};
+    Mat m_inv = Matrix::invert(m);
+    Mat m_inv_inv = Matrix::invert(m_inv);
+    EXPECT_EQ(m_inv_inv, m);
+}
+
+TEST(Matrix, invert4){
+    Mat m = {{3,4,2,12,33,53,57},{2,1,1,4,2,0,1},{4,6,2,8,6,3,6},{1,3,5,7,3,3,2},{1,4,7,3,2,8,4},{4,6,2,5,6,3,6},{1,3,2,3,6,3,9}};
+    Mat m_inv = Matrix::invert(m);
+    Mat m_inv_inv = Matrix::invert(m_inv);
+    m_inv_inv = Matrix::round(m_inv_inv, 1.0);
+    EXPECT_EQ(m_inv_inv, m);
+}
