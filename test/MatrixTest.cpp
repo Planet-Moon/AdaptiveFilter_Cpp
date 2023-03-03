@@ -69,7 +69,7 @@ TEST(Matrix, MatVec2){
     Mat a = {{0},{1},{2},{3}};
     Vec v = {2};
     Vec v2 = a * v;
-    Vec expected = {{0},{2},{4},{6}};
+    Vec expected = {0,2,4,6};
     EXPECT_EQ(v2, expected);
 }
 

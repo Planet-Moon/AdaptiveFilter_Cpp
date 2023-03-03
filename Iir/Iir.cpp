@@ -1,4 +1,4 @@
-#include "IIR.h"
+#include "Iir.h"
 
 const double PI = std::acos(-1);
 using namespace std::complex_literals;
@@ -59,13 +59,13 @@ FreqzResult IIR::freqz(int samples /* = 50 */) const
     #pragma omp parallel for
     for(int n_i = 0; n_i < samples; ++n_i){
         const double angle = 2 * PI * n_i/(samples-1);
-        std::complex<double> temp_b = (0, 0i);
+        std::complex<double> temp_b = 0.0 + 0i;
         #pragma omp parallel for
         for(int n_j = 0; n_j < b.size(); ++n_j){
             temp_b += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
         }
 
-        std::complex<double> temp_a = (0, 0i);
+        std::complex<double> temp_a = 0.0 + 0i;
         #pragma omp parallel for
         for(int n_j = 0; n_j < a.size(); ++n_j){
             temp_a += a[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));

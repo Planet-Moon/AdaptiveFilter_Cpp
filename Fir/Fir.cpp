@@ -73,7 +73,7 @@ FreqzResult Fir::freqz(const Vec& b, int samples /* = 50 */)
     #pragma omp parallel for
     for(int n_i = 0; n_i < samples; ++n_i){
         const double angle = 2 * PI * n_i/(samples-1);
-        std::complex<double> temp = (0, 0i);
+        std::complex<double> temp = 0.0 + 0i;
         #pragma omp parallel for
         for(int n_j = 0; n_j < n; ++n_j){
             temp += b[n_j] * (cos(n_j*angle) - 1i *sin(n_j*angle));
