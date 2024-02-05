@@ -1,8 +1,5 @@
 #pragma once
-#include <complex>
-#include <string>
 #include <Matrix.h>
-#include "json/json.h"
 #include <Fir.h>
 
 class AdaptiveLMS: public Fir{
