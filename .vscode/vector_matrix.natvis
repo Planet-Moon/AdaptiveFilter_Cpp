@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="std::vector&lt;*&gt;">
+        <DisplayString>{{size = {_Mylast - _Myfirst}}}</DisplayString>
+        <Expand>
+            <Item Name="[size]">_Mylast - _Myfirst</Item>
+            <Item Name="[capacity]">(_Myend - _Myfirst)</Item>
+            <ArrayItems>
+                <Size>_Mylast - _Myfirst</Size>
+                <ValuePointer>_Myfirst</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+    <Type Name="MatrixVector::Vec&lt;*&gt;">
+        <DisplayString>Vector {_last - _first}</DisplayString>
+        <Expand>
+            <Item Name="[size]">_last - _first</Item>
+            <!-- <Item Name="[capacity]">(_last - _first)</Item> -->
+            <ArrayItems>
+                <Size>_last - _first</Size>
+                <ValuePointer>_firstPtr</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+    <Type Name="MatrixVector::Mat&lt;*,*&gt;">
+        <DisplayString>Matrix { _rowSize }x{ _colSize }</DisplayString>
+        <Expand>
+            <Item Name="[size]">_rowSize</Item>
+            <!-- <Item Name="[capacity]">(_last - _first)</Item> -->
+            <ArrayItems>
+                <Size>_rowSize</Size>
+                <ValuePointer>_firstPtr</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+    <Type Name="MatrixVector::Mat3&lt;*,*,*&gt;">
+        <DisplayString>Matrix { _pageSize }x{ _rowSize }x{ _colSize }</DisplayString>
+        <Expand>
+            <Item Name="[size]">_pageSize</Item>
+            <!-- <Item Name="[capacity]">(_last - _first)</Item> -->
+            <ArrayItems>
+                <Size>_pageSize</Size>
+                <ValuePointer>_firstPtr</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+</AutoVisualizer>

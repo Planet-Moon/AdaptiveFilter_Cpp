@@ -24,16 +24,16 @@
       "name": "Launch Test",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/test/test.exe",
+      "program": "${command:cmake.buildDirectory}/test/test.exe",
       "args": [
-        "--gtest_filter=*",
+        "--gtest_filter=*Order*",
         "--gmock_verbose=info",
         "--gtest_stack_trace_depth=10"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "console": "externalTerminal"
+      "console": "integratedTerminal"
     },
     {
       "name": "(Windows) Launch C++",
@@ -49,7 +49,8 @@
           "value": "$PATH;${command:cmake.getLaunchTargetDirectory}"
         }
       ],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "visualizerFile": "${workspaceFolder}/.vscode/vector_matrix.natvis"
     }
   ]
 }
