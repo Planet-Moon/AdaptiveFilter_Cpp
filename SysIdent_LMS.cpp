@@ -9,7 +9,7 @@
 
 using steady_clock = std::chrono::steady_clock;
 
-std::string time_now(){
+std::string time_now_str(){
     return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(steady_clock::now().time_since_epoch()).count());
 }
 
@@ -17,7 +17,7 @@ const double pi = std::acos(-1);
 
 int main(int argc, char **argv){
 
-    std::cout<< time_now() << " - Program start" << std::endl;
+    std::cout<< time_now_str() << " - Program start" << std::endl;
 
     const int N_RUNS = 1e2;
     const long long samples = 1e3;
@@ -58,7 +58,7 @@ int main(int argc, char **argv){
 
         AdaptiveLMS AFir(n_adaptive_filter, 0.2);
 
-        std::cout << time_now() << " - Running filters " << n << std::endl;
+        std::cout << time_now_str() << " - Running filters " << n << std::endl;
         Vec output(samples);
         std::vector<UpdateStats> adaptiveStats(samples);
         for(int i=0; i<samples; ++i){
@@ -73,7 +73,7 @@ int main(int argc, char **argv){
         if(n==0){
             firstFilterStats = adaptiveStats;
         }
-        std::cout << time_now() << " - End filters " << n << std::endl;
+        std::cout << time_now_str() << " - End filters " << n << std::endl;
     }
 
     const auto error = Matrix::mean(error_mat, 1)[0];
@@ -81,11 +81,11 @@ int main(int argc, char **argv){
     const auto input = Matrix::mean(input_mat, 1)[0];
     const auto output = Matrix::mean(output_mat, 1)[0];
 
-    std::cout << time_now() << " - Calculating frequency response" << std::endl;
+    std::cout << time_now_str() << " - Calculating frequency response" << std::endl;
     auto AFir_freqz = AdaptiveLMS::freqz(b[b.size()-1], 160);
     auto Fir_freqz = AdaptiveLMS::freqz(coefficients, 160);
 
-    std::cout << time_now() << " - Creating Json response" << std::endl;
+    std::cout << time_now_str() << " - Creating Json response" << std::endl;
 
     Json::Value json;
     json["input"] = JsonServer::fromVector(input);
@@ -120,7 +120,7 @@ int main(int argc, char **argv){
 
     std::cout << "Size of json: " << sizeof(json) << " bytes" << std::endl;
 
-    std::cout << time_now() << " - Running server" << std::endl;
+    std::cout << time_now_str() << " - Running server" << std::endl;
     JsonServer jServer(80,json);
     jServer.host_blocking(true);
 

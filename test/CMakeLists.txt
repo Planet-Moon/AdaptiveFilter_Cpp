@@ -6,6 +6,9 @@ set(SRC
     MatrixTest.cpp
     WhiteNoiseTest.cpp
     IIRTest.cpp
+    FirOrderTest.cpp
+    AdaptiveLMSOrderTest.cpp
+    AdaptiveRLSOrderTest.cpp
 )
 
 find_package(GTest CONFIG REQUIRED)

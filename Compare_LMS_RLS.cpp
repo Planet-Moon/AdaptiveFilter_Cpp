@@ -12,7 +12,7 @@
 
 using steady_clock = std::chrono::steady_clock;
 
-std::string time_now(){
+std::string time_now_str(){
     return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(steady_clock::now().time_since_epoch()).count());
 }
 
@@ -38,10 +38,10 @@ Json::Value generateJson(const FilterInfo& info, const std::vector<UpdateStats>&
     const auto input = Matrix::mean(info.input_mat, 1)[0];
     const auto output = Matrix::mean(info.output_mat, 1)[0];
 
-    std::cout << time_now() << " - Calculating frequency response" << std::endl;
+    std::cout << time_now_str() << " - Calculating frequency response" << std::endl;
     auto freqz = Fir::freqz(b[b.size() - 1], freqz_points);
 
-    std::cout << time_now() << " - Creating Json response" << std::endl;
+    std::cout << time_now_str() << " - Creating Json response" << std::endl;
 
     json["input"] = JsonServer::fromVector(input);
     json["output"] = JsonServer::fromVector(output);
@@ -71,7 +71,7 @@ Json::Value generateJson(const FilterInfo& info, const std::vector<UpdateStats>&
 int main(int argc, char **argv){
 
     std::cout<< "Number of threads: " << omp_get_num_threads() << std::endl;
-    std::cout<< time_now() << " - Program start" << std::endl;
+    std::cout<< time_now_str() << " - Program start" << std::endl;
 
     const int N_RUNS = 1e2;
     const long long samples = 1.5e3;
@@ -113,7 +113,7 @@ int main(int argc, char **argv){
         AdaptiveLMS ALMS_Fir(n_adaptive_filter, 0.02);
         AdaptiveRLS ARLS_Fir(n_adaptive_filter);
 
-        std::cout << time_now() << " - Running filters " << n << " in thread " << omp_get_thread_num() << std::endl;
+        std::cout << time_now_str() << " - Running filters " << n << " in thread " << omp_get_thread_num() << std::endl;
         Vec output(samples);
         std::vector<UpdateStats> ALMS_adaptiveStats(samples);
         std::vector<UpdateStats> ARLS_adaptiveStats(samples);
@@ -140,7 +140,7 @@ int main(int argc, char **argv){
             ALMS_firstFilterStats = ALMS_adaptiveStats;
             ARLS_firstFilterStats = ARLS_adaptiveStats;
         }
-        std::cout << time_now() << " - End filters " << n << std::endl;
+        std::cout << time_now_str() << " - End filters " << n << std::endl;
     }
 
     Json::Value json;
@@ -170,7 +170,7 @@ int main(int argc, char **argv){
 
     std::cout << "Size of json: " << sizeof(json) << " bytes" << std::endl;
 
-    std::cout << time_now() << " - Running server" << std::endl;
+    std::cout << time_now_str() << " - Running server" << std::endl;
     JsonServer jServer(80,json);
     jServer.host_blocking(false);
 

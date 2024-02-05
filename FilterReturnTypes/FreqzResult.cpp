@@ -1,19 +1,8 @@
-#include "FilterReturnTypes.h"
+#include "FreqzResult.h"
 #include <fstream>
 #include <algorithm>
+#include <json/json.h>
 
-Json::Value UpdateStats::toJson() const
-{
-    Json::Value result;
-    result["error"] = error;
-    Json::Value bJson{};
-    for(int i=0; i<b.size(); ++i){
-        bJson[i] = b[i];
-    }
-    result["b"] = bJson;
-    result["y"] = y;
-    return result;
-}
 
 std::vector<std::string> FreqzResult::h_toStringVec() const
 {

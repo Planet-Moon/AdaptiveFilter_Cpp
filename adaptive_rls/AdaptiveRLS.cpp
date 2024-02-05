@@ -69,7 +69,7 @@ Vec AdaptiveRLS::predict(int samples, int delay) const
     }
     #pragma omp parallel for
     for(int i = x.size(); i < result.size(); i++){
-        const Vec local_x(i-(i-n));
+        const Vec local_x(n);
         auto z = Matrix::fromVector(local_x) * b;
         result[i] = z[0];
     }

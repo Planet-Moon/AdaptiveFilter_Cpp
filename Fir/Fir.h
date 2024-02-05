@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include <Matrix.h>
-#include <FilterReturnTypes.h>
+#include <FreqzResult.h>
+#include <UpdateStats.h>
+
 
 class Fir{
 public:

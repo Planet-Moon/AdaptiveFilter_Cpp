@@ -1,6 +1,6 @@
 #include "Matrix.h"
 #include <cassert>
-#include <iostream>
+#include <cmath>
 
 std::vector<size_t> dimension(const Vec& v){
     return {1, v.size()};

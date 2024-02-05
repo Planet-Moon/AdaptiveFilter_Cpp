@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <FilterReturnTypes.h>
+#include <FreqzResult.h>
 
 class IIR{
 public:

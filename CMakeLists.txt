@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(adaptiveFilter CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -15,13 +17,17 @@ find_package(jsoncpp CONFIG REQUIRED)
 add_library(matrix STATIC
     Matrix/Matrix.h
     Matrix/Matrix.cpp
+    Matrix/MatrixVector.h
 )
 target_include_directories(matrix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Matrix)
 target_link_libraries(matrix PUBLIC OpenMP::OpenMP_CXX)
 
 add_library(filterreturntypes STATIC
-    FilterReturnTypes/FilterReturnTypes.h
-    FilterReturnTypes/FilterReturnTypes.cpp
+    FilterReturnTypes/UpdateStats.h
+    FilterReturnTypes/UpdateStats.cpp
+    FilterReturnTypes/UpdateStatsOrder.h
+    FilterReturnTypes/FreqzResult.h
+    FilterReturnTypes/FreqzResult.cpp
 )
 target_include_directories(filterreturntypes PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/FilterReturnTypes)
 target_link_libraries(filterreturntypes PUBLIC matrix)
@@ -139,11 +145,12 @@ add_library(jsonserver STATIC
 )
 target_include_directories(jsonserver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Server)
 target_include_directories(jsonserver PUBLIC ${CPP_HTTPLIB_INCLUDE_DIRS})
-target_link_libraries(jsonserver PUBLIC jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
+target_link_libraries(jsonserver PUBLIC matrix jsoncpp_lib jsoncpp_object JsonCpp::JsonCpp)
 
 add_library(adaptiveRLS STATIC
     adaptive_rls/AdaptiveRLS.h
     adaptive_rls/AdaptiveRLS.cpp
+    adaptive_rls/AdaptiveRLSOrder.h
 )
 target_include_directories(adaptiveRLS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adaptive_rls)
 target_link_libraries(adaptiveRLS PUBLIC fir)
@@ -151,6 +158,7 @@ target_link_libraries(adaptiveRLS PUBLIC fir)
 add_library(adaptiveLMS STATIC
     adaptive_lms/AdaptiveLMS.h
     adaptive_lms/AdaptiveLMS.cpp
+    adaptive_lms/AdaptiveLMSOrder.h
 )
 target_include_directories(adaptiveLMS PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adaptive_lms)
 target_link_libraries(adaptiveLMS PUBLIC fir)
@@ -172,6 +180,15 @@ target_link_libraries(SysIdentRLS PUBLIC
     jsonserver
 )
 
+add_executable(SysIdentRLSOrder
+    ExampleFirOrder.h
+    SysIdent_RLSOrder.cpp
+)
+target_link_libraries(SysIdentRLSOrder PUBLIC
+    adaptiveRLS
+    noise
+    jsonserver
+)
 
 add_executable(SysIdentLMS
     ExampleFir.h
@@ -193,3 +210,6 @@ find_package(sciplot CONFIG REQUIRED)
 target_link_libraries(PlotTest PRIVATE sciplot::sciplot)
 
 add_subdirectory(kalman)
+
+add_executable(test_openmp test_openmp.cpp)
+target_link_libraries(test_openmp PUBLIC OpenMP::OpenMP_CXX)

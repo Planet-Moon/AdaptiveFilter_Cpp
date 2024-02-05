@@ -39,7 +39,7 @@ std::string Fir::impz() const
     std::string result = "";
     for(unsigned int i = 0; i < n; ++i){
         if(b[i] == 0) continue;
-        result += std::to_string(b[i]) + "*z^" + std::to_string(i);
+        result += std::to_string(b[i]) + "*z^-" + std::to_string(i);
         if(i+1 < n && b[i+1] >= 0)
             result += " + ";
     }
